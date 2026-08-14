@@ -5,9 +5,15 @@
  * (利用側が定数で持つ。auth なら `contexts/auth/presentation/refresh-cookie.ts`)。
  * ここに置くのは本番とローカルで値が変わる 2 つだけ。
  *
- * presentation が使うのに shared/domain に置くのは構造上の帰結。presentation は
- * infrastructure を参照できず (`no-indirect-path-to-impl`)、`contexts/auth/domain/` も
- * `presentation-not-to-context-domain` が止める。`AccessTokenIssuer` と同じ位置。
+ * **これはポートではない。** 隣の `Clock` や `PasswordHasher` と違って振る舞いを持たず、
+ * ドメインからも参照されない (使うのは auth の presentation だけ)。
+ * それでも `domain/` に居るのは**他に置ける場所が無いから** — presentation は
+ * infrastructure を参照できず、`shared/presentation/` に置くと今度は実装
+ * (`readCookieSettings`) がそこを import できない。境界ルールの帰結であって、
+ * ここが正しい場所だからではない。
+ *
+ * 置き場の再検討は [`docs/TODO.md`](../../../docs/TODO.md)。
+ * 引き金は**環境で変わる設定値が 2 つ目に出てきたとき**。
  */
 export type CookieSettings = {
   /**

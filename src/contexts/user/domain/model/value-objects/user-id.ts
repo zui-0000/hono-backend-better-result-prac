@@ -1,7 +1,6 @@
 import type * as z from "zod";
 
 import { Uuid } from "~/shared/domain/model/uuid";
-import { generateBrandedUuid } from "~/shared/domain/uuid-generator";
 
 /**
  * ユーザーの識別子 (値オブジェクト / branded uuidv7)。形式検証は共有ドメインの Uuid。
@@ -12,6 +11,3 @@ import { generateBrandedUuid } from "~/shared/domain/uuid-generator";
  */
 export const UserId = Uuid.brand<"User.Id">();
 export type UserId = z.infer<typeof UserId>;
-
-/** 新規ユーザーの識別子を採番する (共有ヘルパーに委譲)。 */
-export const generateUserId = generateBrandedUuid(UserId);

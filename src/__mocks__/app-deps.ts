@@ -94,6 +94,6 @@ export const makeDeps = (
   // あるため、本番の既定 (secure: true) ではなくここで固定する。
   cookieSettings: { secure: false, domain: undefined },
 
-  uuidGenerator: { next: () => FIXED_UUID },
+  uuidGenerator: { generate: () => FIXED_UUID },
   clock: { now: () => FIXED_NOW },
 });

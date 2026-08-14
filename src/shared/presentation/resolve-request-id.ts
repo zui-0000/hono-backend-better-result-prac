@@ -33,7 +33,7 @@ export const resolveRequestId = (deps: {
       incoming.length <= MAX_LENGTH &&
       SAFE_PATTERN.test(incoming)
         ? incoming
-        : deps.uuidGenerator.next();
+        : deps.uuidGenerator.generate();
 
     c.set("requestId", requestId);
 

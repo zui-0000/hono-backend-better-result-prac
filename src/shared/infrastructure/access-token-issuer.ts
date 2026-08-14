@@ -1,10 +1,8 @@
 import { Result } from "better-result";
 import { sign, verify } from "hono/jwt";
 
-import {
-  AccessTokenClaims,
-  type AccessTokenIssuer,
-} from "~/shared/domain/access-token-issuer";
+import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
+import { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 /** 発行と検証が同じプロセスで完結するため対称鍵で足りる。 */

@@ -1,5 +1,5 @@
 import type { AuthDeps } from "~/contexts/auth/auth-deps";
-import { bunRefreshTokenIssuer } from "~/contexts/auth/infrastructure/refresh-token-issuer";
+import { refreshTokenIssuer } from "~/contexts/auth/infrastructure/refresh-token-issuer";
 import { createRefreshTokenRepository } from "~/contexts/auth/infrastructure/refresh-token-repository";
 import { createGetUserQueryService } from "~/contexts/user/infrastructure/get-user-query-service";
 import { createUserRepository } from "~/contexts/user/infrastructure/user-repository";
@@ -7,10 +7,10 @@ import { createVerifyCredentialsQueryService } from "~/contexts/user/infrastruct
 import type { UserDeps } from "~/contexts/user/user-deps";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { CookieSettings } from "~/shared/domain/cookie-settings";
-import { systemClock } from "~/shared/infrastructure/clock";
+import { clock } from "~/shared/infrastructure/clock";
 import type { Database } from "~/shared/infrastructure/db/database-client";
-import { bunPasswordHasher } from "~/shared/infrastructure/password-hasher";
-import { bunUuidGenerator } from "~/shared/infrastructure/uuid-generator";
+import { passwordHasher } from "~/shared/infrastructure/password-hasher";
+import { uuidGenerator } from "~/shared/infrastructure/uuid-generator";
 
 /**
  * アプリケーションの合成ルート (composition root)。
@@ -42,18 +42,19 @@ export const createAppDeps = (params: {
     // --- user が auth へ公開している面 (Customer/Supplier) ---
     verifyCredentialsQueryService: createVerifyCredentialsQueryService({
       userRepository,
-      passwordHasher: bunPasswordHasher,
+      passwordHasher,
     }),
 
     // --- auth ---
     refreshTokenRepository: createRefreshTokenRepository(params.db),
-    refreshTokenIssuer: bunRefreshTokenIssuer,
+    refreshTokenIssuer,
 
     // --- 横断 ---
+    // params 経由の 2 つは、起動時に環境変数を読んで組み立てたもの (main.ts)。
     accessTokenIssuer: params.accessTokenIssuer,
     cookieSettings: params.cookieSettings,
-    passwordHasher: bunPasswordHasher,
-    uuidGenerator: bunUuidGenerator,
-    clock: systemClock,
+    passwordHasher,
+    uuidGenerator,
+    clock,
   };
 };

@@ -11,7 +11,7 @@ import type { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import { issueRefreshToken } from "../domain/model/refresh-token";
 import { RefreshTokenHash } from "../domain/model/value-objects/refresh-token-hash";
-import { generateSessionId } from "../domain/model/value-objects/session-id";
+import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
@@ -61,7 +61,7 @@ export const createLoginCommand =
         await deps.verifyCredentialsQueryService.execute(input),
       );
 
-      const sessionId = generateSessionId(deps.uuidGenerator);
+      const sessionId = SessionId.parse(deps.uuidGenerator.generate());
       const issued = await deps.refreshTokenIssuer.issue();
 
       yield* Result.await(

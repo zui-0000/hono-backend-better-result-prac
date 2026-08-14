@@ -1,7 +1,6 @@
 import type * as z from "zod";
 
 import { Uuid } from "~/shared/domain/model/uuid";
-import { generateBrandedUuid } from "~/shared/domain/uuid-generator";
 
 /**
  * ログインからログアウトまで不変の識別子。JWT の `sid` はこちら。
@@ -9,5 +8,3 @@ import { generateBrandedUuid } from "~/shared/domain/uuid-generator";
  */
 export const SessionId = Uuid.brand<"Auth.SessionId">();
 export type SessionId = z.infer<typeof SessionId>;
-
-export const generateSessionId = generateBrandedUuid(SessionId);

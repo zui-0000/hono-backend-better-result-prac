@@ -5,7 +5,7 @@ import type {
   ChangePasswordBody,
   ChangePasswordParams,
 } from "~/generated/users";
-import type { AccessTokenClaims } from "~/shared/domain/access-token-issuer";
+import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
 import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 

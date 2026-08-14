@@ -20,7 +20,7 @@ const sha256Hex = (token: string): string =>
  * ハッシュが SHA-256 で足りるのは、券が高エントロピーな乱数だから
  * (パスワードのように推測されうる値ではないので argon2 は要らない)。
  */
-export const bunRefreshTokenIssuer: RefreshTokenIssuer = {
+export const refreshTokenIssuer: RefreshTokenIssuer = {
   issue: async () => {
     const token =
       TOKEN_PREFIX +

@@ -9,7 +9,7 @@ import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import { UserHashedPassword } from "./value-objects/user-hashed-password";
-import { generateUserId, UserId } from "./value-objects/user-id";
+import { UserId } from "./value-objects/user-id";
 import { UserName } from "./value-objects/user-name";
 
 /**
@@ -44,7 +44,7 @@ export const createUser = (
 ): User => {
   const timestamp = deps.clock.now();
   return {
-    id: generateUserId(deps.uuidGenerator),
+    id: UserId.parse(deps.uuidGenerator.generate()),
     name: params.name,
     mailAddress: params.mailAddress,
     hashedPassword: params.hashedPassword,

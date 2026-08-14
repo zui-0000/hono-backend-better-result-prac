@@ -5,10 +5,7 @@ import type { Clock } from "~/shared/domain/clock";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 
 import { RefreshTokenHash } from "./value-objects/refresh-token-hash";
-import {
-  generateRefreshTokenId,
-  RefreshTokenId,
-} from "./value-objects/refresh-token-id";
+import { RefreshTokenId } from "./value-objects/refresh-token-id";
 import { SessionId } from "./value-objects/session-id";
 
 /** 券の寿命 (2 週間) と、ローテーション時の猶予期間 (30 秒)。 */
@@ -66,7 +63,7 @@ export const issueRefreshToken = (
 ): RefreshToken => {
   const timestamp = deps.clock.now();
   return {
-    id: generateRefreshTokenId(deps.uuidGenerator),
+    id: RefreshTokenId.parse(deps.uuidGenerator.generate()),
     sessionId: params.sessionId,
     tokenHash: params.tokenHash,
     userId: params.userId,

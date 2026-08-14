@@ -1,10 +1,8 @@
 import { Result } from "better-result";
 import type { Context } from "hono";
 
-import type {
-  AccessTokenClaims,
-  AccessTokenIssuer,
-} from "~/shared/domain/access-token-issuer";
+import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
+import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import { HttpHeader } from "../constants/http-header";
