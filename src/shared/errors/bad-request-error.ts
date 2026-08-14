@@ -1,5 +1,7 @@
 import { TaggedError } from "better-result";
 
+import type { ErrorMessage } from "~/shared/presentation/constants/error-message";
+
 import type { ErrorDetail } from "./error-detail";
 
 /**
@@ -7,6 +9,6 @@ import type { ErrorDetail } from "./error-detail";
  * 入力値の検証失敗などを表す。
  */
 export class BadRequestError extends TaggedError("BadRequestError")<{
-  readonly message: string;
+  readonly message: ErrorMessage;
   readonly details?: readonly ErrorDetail[];
 }> {}

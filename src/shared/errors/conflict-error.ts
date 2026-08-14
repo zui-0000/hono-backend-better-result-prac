@@ -1,5 +1,7 @@
 import { TaggedError } from "better-result";
 
+import type { ErrorMessage } from "~/shared/presentation/constants/error-message";
+
 /**
  * リソースの現在の状態と衝突する (汎用 / errorCode 4090 / HTTP 409)。
  * 具体的な事由がある衝突は専用エラー (例: MailAddressDuplicationError) を使う。
@@ -9,5 +11,5 @@ import { TaggedError } from "better-result";
  * これが使われるのは「分岐する必要が無い衝突」が出てきたとき。
  */
 export class ConflictError extends TaggedError("ConflictError")<{
-  readonly message: string;
+  readonly message: ErrorMessage;
 }> {}

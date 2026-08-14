@@ -18,7 +18,7 @@ describe(handleNotFound.name, () => {
     expect(response.status).toBe(HttpStatus.NotFound);
     expect(await response.json()).toStrictEqual({
       errorCode: ErrorCode.ResourceNotFound,
-      message: ErrorMessage.NotFound,
+      message: ErrorMessage.ResourceNotFound,
     });
   });
 

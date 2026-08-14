@@ -113,7 +113,7 @@ export const handleErrorResponse = (error: ApplicationError): ErrorResponse =>
       status: HttpStatus.NotFound,
       body: errorBody({
         errorCode: ErrorCode.ResourceNotFound,
-        message: ErrorMessage.NotFound,
+        message: ErrorMessage.ResourceNotFound,
       }),
     }),
 
