@@ -2,12 +2,6 @@ import type * as z from "zod";
 
 import { Uuid } from "~/shared/domain/model/uuid";
 
-/**
- * ユーザーの識別子 (値オブジェクト / branded uuidv7)。形式検証は共有ドメインの Uuid。
- *
- * エクスポート名を集約で修飾する (UserId) のは、バレルを置かず各ファイルから直接
- * import する方針のため。名前だけで文脈が分かる必要がある。brand タグも同じ理由で
- * グローバル一意にしておく。
- */
+/** ユーザーの識別子 (値オブジェクト / branded uuidv7)。形式検証は共有ドメインの Uuid。 */
 export const UserId = Uuid.brand<"User.Id">();
 export type UserId = z.infer<typeof UserId>;

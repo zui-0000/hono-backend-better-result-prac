@@ -13,19 +13,13 @@ import type { UserRepository } from "../user-repository";
  * メールアドレスとパスワードの組で本人を特定する (ドメインサービス)。
  * 一致すればその利用者の id を返し、しなければ `undefined`。
  *
- * 集約 1 つを見ても「この組み合わせが誰か」は判断できない (まず引き当てが要る)。
- * `checkMailAddressDuplication` と同じ形 (引き当て → 判定)。
- *
- * **「居ない」と「合わない」を区別しない。** 書き分けると、総当たりでメールアドレスの
- * 登録有無を判定できてしまう (アカウント列挙)。401 へ翻訳するのは呼び出し側の責務。
- *
  * この関数を auth が直接呼ぶことはない。呼ぶと auth が `UserRepository` を握り、
  * user の書き込み側 (`create` / `deleteById`) まで触れるようになる。auth には
  * `public/verify-credentials-query-service.ts` のポートだけを見せる。
  */
 export const verifyCredentials = async (
   deps: {
-    readonly userRepository: UserRepository;
+    readonly userRepository: Pick<UserRepository, "findByMailAddress">;
     readonly passwordHasher: PasswordHasher;
   },
   mailAddress: MailAddress,
@@ -35,11 +29,16 @@ export const verifyCredentials = async (
     const found = yield* Result.await(
       deps.userRepository.findByMailAddress(mailAddress),
     );
+    // 401 にせず undefined で返すのは、**401 にするかが呼び出し側の方針**だから。
+    // ここは `public/` 越しに auth へ渡る面で、ドメインが答えるのは「この人は誰か」だけ。
+    // (同じ照合を「削除前の再確認」に使うなら、正解は 401 とは限らない)
     if (found === undefined) {
       return Result.ok(undefined);
     }
 
-    // 一致しなければ UnauthorizedError で失敗するので、undefined に畳む。
+    // **照合の失敗は握り潰して undefined に畳む。** ここを `yield*` で短絡させると
+    // 「居ない」(undefined) と「合わない」(失敗) が呼び出し側から見分けられてしまう。
+    // E に PasswordMismatchError が現れないのはそのため。
     const verified = await verifyUserPassword(deps, found, password);
     return Result.ok(verified.isOk() ? found.id : undefined);
   });
