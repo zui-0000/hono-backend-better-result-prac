@@ -25,8 +25,17 @@ export type RefreshTokenRepository = {
     readonly issued: RefreshToken;
   }) => Promise<Result<void, RepositoryError>>;
   /**
-   * セッションの券を**すべて**失効させる。既に失効した行も対象にする —
-   * 除外すると、ローテーション済みで猶予期間内の券が生き残ってセッションが復活する。
+   * セッションの券を**すべて**失効させる。ログアウトと盗難検出の出口。
+   *
+   * 既に失効した行も対象にする — 除外すると、ローテーション済みで猶予期間内の券が
+   * 生き残ってセッションが復活する。
+   *
+   * **理由は `revoked` を書くこと** (引数に取らないのは、この操作に `rotated` が
+   * ありえないから)。`classifyRefreshToken` は理由が `rotated` のときだけ猶予を
+   * 与えるので、書き忘れると猶予は付かない代わりに「なぜ失効したか」が消え、
+   * 行を残している意味 — 盗難の兆候を「知らない券」と区別すること — が半減する。
+   *
+   * 失効時刻は**既にある値を残す**こと (いつ最初に失効したかは監査の手掛かり)。
    */
   readonly revokeSession: (params: {
     readonly sessionId: SessionId;

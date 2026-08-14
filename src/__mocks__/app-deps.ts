@@ -1,6 +1,7 @@
 import { Result } from "better-result";
 
 import type { AppDeps } from "~/app-deps";
+import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/refresh-token-hash";
 import type { RefreshTokenIssuer } from "~/contexts/auth/domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "~/contexts/auth/domain/refresh-token-repository";
 import type { GetUserQueryService } from "~/contexts/user/application/get-user-query-service";
@@ -73,8 +74,11 @@ export const makeDeps = (
   },
 
   refreshTokenIssuer: {
-    issue: async () => ({ token: FAKE_REFRESH_TOKEN, hash: FAKE_TOKEN_HASH }),
-    hash: async () => FAKE_TOKEN_HASH,
+    issue: async () => ({
+      token: FAKE_REFRESH_TOKEN,
+      hash: RefreshTokenHash.parse(FAKE_TOKEN_HASH),
+    }),
+    hash: async () => RefreshTokenHash.parse(FAKE_TOKEN_HASH),
     ...overrides.refreshTokenIssuer,
   },
 
