@@ -9,8 +9,7 @@ import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 import type { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
-import { issueRefreshToken } from "../domain/model/refresh-token";
-import { RefreshTokenHash } from "../domain/model/value-objects/refresh-token-hash";
+import { createRefreshToken } from "../domain/model/refresh-token";
 import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
@@ -62,14 +61,14 @@ export const createLoginCommand =
       );
 
       const sessionId = SessionId.parse(deps.uuidGenerator.generate());
-      const issued = await deps.refreshTokenIssuer.issue();
+      const generated = await deps.refreshTokenIssuer.issue();
 
       yield* Result.await(
         deps.refreshTokenRepository.create(
-          issueRefreshToken(deps, {
+          createRefreshToken(deps, {
             userId,
             sessionId,
-            tokenHash: RefreshTokenHash.parse(issued.hash),
+            tokenHash: generated.hash,
           }),
         ),
       );
@@ -80,5 +79,5 @@ export const createLoginCommand =
         sid: sessionId,
       });
 
-      return Result.ok({ accessToken, refreshToken: issued.token });
+      return Result.ok({ accessToken, refreshToken: generated.token });
     });

@@ -10,13 +10,12 @@ import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import {
   classifyRefreshToken,
-  issueRefreshToken,
+  createRefreshToken,
   type RefreshToken,
   RefreshTokenState,
   revokeRefreshToken,
-  RevokedReason,
+  RevokedReasonEnum,
 } from "../domain/model/refresh-token";
-import { RefreshTokenHash } from "../domain/model/value-objects/refresh-token-hash";
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
@@ -54,18 +53,18 @@ const rotate = async (
   current: RefreshToken,
 ): Promise<Result<RefreshCommandOutput, RepositoryError>> =>
   await Result.gen(async function* () {
-    const next = await deps.refreshTokenIssuer.issue();
+    const generated = await deps.refreshTokenIssuer.issue();
 
-    const issued = issueRefreshToken(deps, {
+    const issued = createRefreshToken(deps, {
       userId: current.userId,
       sessionId: current.sessionId,
-      tokenHash: RefreshTokenHash.parse(next.hash),
+      tokenHash: generated.hash,
     });
 
     // 失効と発行は 1 つの単位。間で落ちるとクライアントは再ログインしか道が無くなる。
     yield* Result.await(
       deps.refreshTokenRepository.rotate({
-        revoked: revokeRefreshToken(deps, current, RevokedReason.Rotated),
+        revoked: revokeRefreshToken(deps, current, RevokedReasonEnum.Rotated),
         issued,
       }),
     );
@@ -75,7 +74,7 @@ const rotate = async (
       sid: current.sessionId,
     });
 
-    return Result.ok({ accessToken, refreshToken: next.token });
+    return Result.ok({ accessToken, refreshToken: generated.token });
   });
 
 /**
@@ -93,8 +92,8 @@ export const createRefreshCommand =
   > =>
     await Result.gen(async function* () {
       // 券そのものは保存していないので、ハッシュに直してから引く。
-      const presentedHash = RefreshTokenHash.parse(
-        await deps.refreshTokenIssuer.hash(input.refreshToken),
+      const presentedHash = await deps.refreshTokenIssuer.hash(
+        input.refreshToken,
       );
 
       const current = yield* orUnauthorized(
