@@ -12,6 +12,14 @@ import { SessionId } from "./value-objects/session-id";
 const TTL_MILLIS = 14 * 24 * 60 * 60 * 1000;
 const GRACE_PERIOD_MILLIS = 30 * 1000;
 
+export const RevokedReason = {
+  /** ローテーションで置き換えられた。猶予期間の対象。 */
+  Rotated: "rotated",
+  /** ログアウト / 盗難検出で切られた。猶予は与えない。 */
+  Revoked: "revoked",
+} as const;
+export type RevokedReason = (typeof RevokedReason)[keyof typeof RevokedReason];
+
 /**
  * RefreshToken 集約ルート。
  *
@@ -30,18 +38,11 @@ export const RefreshToken = z.object({
   userId: UserId,
   expiresAt: z.date(),
   revokedAt: z.date().nullable(),
-  revokedReason: z.enum(["rotated", "revoked"]).nullable(),
+  // 定数から引く。リテラルを書き写すと、理由を足したときスキーマだけ知らないまま残る。
+  revokedReason: z.enum(RevokedReason).nullable(),
   createdAt: z.date(),
 });
 export type RefreshToken = z.infer<typeof RefreshToken>;
-
-export const RevokedReason = {
-  /** ローテーションで置き換えられた。猶予期間の対象。 */
-  Rotated: "rotated",
-  /** ログアウト / 盗難検出で切られた。猶予は与えない。 */
-  Revoked: "revoked",
-} as const;
-export type RevokedReason = (typeof RevokedReason)[keyof typeof RevokedReason];
 
 export const RefreshTokenState = {
   Usable: "usable",
