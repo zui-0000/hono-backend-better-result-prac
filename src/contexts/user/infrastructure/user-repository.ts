@@ -43,9 +43,6 @@ const restoreUser = (
   return row === undefined ? undefined : User.parse(row);
 };
 
-/** 書き込み系は結果を捨てる (行数もドメインの関心事ではない)。 */
-const toVoid = (): void => undefined;
-
 export const createUserRepository = (db: Database): UserRepository => ({
   create: async (user) =>
     (
@@ -62,7 +59,7 @@ export const createUserRepository = (db: Database): UserRepository => ({
     )
       .mapError(handleDbError)
       .mapError(handleMailAddressDuplicationError(user))
-      .map(toVoid),
+      .map(() => void 0),
 
   updateProfile: async (user) =>
     (
@@ -79,7 +76,7 @@ export const createUserRepository = (db: Database): UserRepository => ({
     )
       .mapError(handleDbError)
       .mapError(handleMailAddressDuplicationError(user))
-      .map(toVoid),
+      .map(() => void 0),
 
   // メールアドレスを書かないので一意制約違反は起こりえない (E にも現れない)。
   updatePassword: async (user) =>
@@ -95,7 +92,7 @@ export const createUserRepository = (db: Database): UserRepository => ({
       )
     )
       .mapError(handleDbError)
-      .map(toVoid),
+      .map(() => void 0),
 
   findById: async (id) =>
     (
@@ -123,5 +120,5 @@ export const createUserRepository = (db: Database): UserRepository => ({
   deleteById: async (id) =>
     (await Result.tryPromise(() => db.delete(tUser).where(eq(tUser.id, id))))
       .mapError(handleDbError)
-      .map(toVoid),
+      .map(() => void 0),
 });

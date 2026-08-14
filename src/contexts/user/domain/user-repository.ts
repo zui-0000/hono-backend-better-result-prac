@@ -9,10 +9,6 @@ import type { UserId } from "./model/value-objects/user-id";
 
 /**
  * User 集約の永続化ポート (書き込み側 / CQRS のコマンド経路)。
- * 実装は infrastructure 層に置く。読み取り (射影) は別途 QueryService が担う。
- *
- * 見つからない場合は `undefined`。専用の Option 型を持ち込まないのは、
- * TypeScript の `T | undefined` が同じことを表せて、絞り込みも効くから。
  */
 export type UserRepository = {
   readonly create: (
