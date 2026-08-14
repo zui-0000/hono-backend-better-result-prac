@@ -8,11 +8,17 @@ import { ErrorMessage } from "./constants/error-message";
 
 /**
  * zod の失敗を、契約の `details`（フィールド単位の指摘）に写す。
- * `path` は配列なので `.` で繋いでフィールド名にする (ネストした項目のため)。
+ *
+ * `path` は配列なので `.` で繋ぐ (ネストした項目は "meta.respondedAt" になる)。
+ * **空のときは "-"** — ボディ全体が不正な場合 (オブジェクトですらない等) に
+ * 起きる。空文字のままだと `field` が必須項目なのに何も伝えない値になる。
+ *
+ * 違反は最初の 1 件で止めず全部集める。1 回のやり取りで直しきれるようにするため。
+ * (zod の `safeParse` は既定でそう振る舞う)
  */
 const toErrorDetails = (error: z.ZodError): readonly ErrorDetail[] =>
   error.issues.map((issue) => ({
-    field: issue.path.join("."),
+    field: issue.path.length === 0 ? "-" : issue.path.join("."),
     message: issue.message,
   }));
 

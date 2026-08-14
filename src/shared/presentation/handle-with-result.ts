@@ -3,14 +3,14 @@ import type { Handler } from "hono";
 import { setCookie } from "hono/cookie";
 
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
+import { InternalServerError } from "~/shared/errors/internal-server-error";
 
 import { HttpStatus } from "./constants/http-status";
 import {
   type ApplicationError,
-  defectResponse,
   handleErrorResponse,
 } from "./handler/handle-error-response";
-import { logDefect, logFailure } from "./handler/log-failure";
+import { logFailure } from "./handler/log-failure";
 import {
   type ControllerInput,
   type RequestSchemas,
@@ -83,8 +83,9 @@ export const handleWithResult =
     } catch (defect) {
       // 型付きエラーに翻訳できない失敗。放っておくと Hono 既定の平文 500 が返り、
       // 契約と違う形になったうえログも残らない。
-      logDefect(c, requestId, defect);
-      return c.json(defectResponse.body, defectResponse.status);
+      // **InternalServerError に包んで、下の翻訳と同じ経路へ流す** —
+      // 500 の出口を 2 つ持つと、片方だけ形が変わっても気付けない。
+      outcome = Result.err(new InternalServerError({ cause: defect }));
     }
 
     if (!outcome.isOk()) {

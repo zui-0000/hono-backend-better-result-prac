@@ -91,6 +91,25 @@ describe(createCreateUserController.name, () => {
       expect(created).toStrictEqual([]);
     });
 
+    test("ボディがオブジェクトですらない場合、field が空にならないこと", async () => {
+      // path が取れないときに空文字を返すと、field が必須項目なのに
+      // 「どこが悪いか」を何も伝えない値になる。
+      const response = await createApp(makeDeps()).request("/users", {
+        method: "POST",
+        headers,
+        body: JSON.stringify("これはオブジェクトですらない"),
+      });
+
+      expect(response.status).toBe(HttpStatus.BadRequest);
+      expect(
+        (
+          (await response.json()) as {
+            details: { field: string; message: string }[];
+          }
+        ).details,
+      ).toStrictEqual([{ field: "-", message: expect.any(String) }]);
+    });
+
     test("契約に反する入力は 400 と違反フィールドを返すこと", async () => {
       const response = await post(makeDeps(), {
         name: "",

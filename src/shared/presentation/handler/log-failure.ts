@@ -22,15 +22,31 @@ const write = (
   }
 };
 
-/** インフラ由来の失敗だけ内訳を足す (運用が動く必要があるかの判断材料)。 */
-const infraContext = (error: ApplicationError): Record<string, unknown> =>
-  error._tag === "RepositoryError"
-    ? {
-        failure: error.failure,
-        ...(error.sqlState === undefined ? {} : { sqlState: error.sqlState }),
-        cause: String(error.cause),
-      }
-    : {};
+/**
+ * 5xx だけ内訳を足す (運用が動く必要があるかの判断材料)。
+ *
+ * **原因はここにしか出さない。** 応答には定型文しか載せないので、
+ * 何が起きたかを追える場所はログだけになる。
+ */
+const causeContext = (error: ApplicationError): Record<string, unknown> => {
+  if (error._tag === "RepositoryError") {
+    return {
+      failure: error.failure,
+      ...(error.sqlState === undefined ? {} : { sqlState: error.sqlState }),
+      cause: String(error.cause),
+    };
+  }
+  if (error._tag === "InternalServerError") {
+    // 翻訳できなかったものはスタックまで残す (どこで壊れたか分からないため)。
+    return {
+      cause:
+        error.cause instanceof Error
+          ? (error.cause.stack ?? error.cause.message)
+          : String(error.cause),
+    };
+  }
+  return {};
+};
 
 /** 型付きエラーを記録する。5xx だけ ERROR、それ以外は WARN。 */
 export const logFailure = (
@@ -50,23 +66,9 @@ export const logFailure = (
   if (status >= 500) {
     write("ERROR", "リクエストの処理に失敗しました", {
       ...context,
-      ...infraContext(error),
+      ...causeContext(error),
     });
   } else {
     write("WARN", "リクエストを受け付けられませんでした", context);
   }
-};
-
-/** 型付きエラーに翻訳できない失敗 (throw されたもの)。原因はログにだけ残す。 */
-export const logDefect = (
-  c: Context,
-  requestId: string,
-  defect: unknown,
-): void => {
-  write("ERROR", "リクエストの処理が異常終了しました", {
-    requestId,
-    method: c.req.method,
-    path: c.req.path,
-    defect: defect instanceof Error ? defect.stack : String(defect),
-  });
 };

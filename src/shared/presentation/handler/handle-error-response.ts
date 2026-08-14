@@ -4,6 +4,7 @@ import type { BadRequestError } from "~/shared/errors/bad-request-error";
 import type { ConflictError } from "~/shared/errors/conflict-error";
 import type { ErrorDetail } from "~/shared/errors/error-detail";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
+import type { InternalServerError } from "~/shared/errors/internal-server-error";
 import type { MailAddressDuplicationError } from "~/shared/errors/mail-address-duplication-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
@@ -14,8 +15,11 @@ import { ErrorMessage } from "../constants/error-message";
 import { HttpStatus } from "../constants/http-status";
 
 /**
- * presentation 層が HTTP に翻訳できるエラーの集合。
- * 対応する HTTP ステータスの昇順に並べる。
+ * presentation 層が HTTP に翻訳できるエラーの集合。ステータスの昇順に並べる。
+ *
+ * 末尾の 2 つが 500 で、役割が違う。`RepositoryError` は**インフラ由来と分かっている**
+ * 失敗、`InternalServerError` は**それ以外すべて**（throw されたものの受け皿）。
+ * 後者があることで、500 の出口がこの表 1 つに閉じる。
  */
 export type ApplicationError =
   | BadRequestError
@@ -24,9 +28,9 @@ export type ApplicationError =
   | ResourceNotFoundError
   | ConflictError
   | MailAddressDuplicationError
-  | RepositoryError;
+  | RepositoryError
+  | InternalServerError;
 
-/** エラー応答のボディ (TypeSpec の各 *Error モデルと対応)。 */
 export type ErrorBody = {
   readonly errorCode: ErrorCode;
   readonly message: string;
@@ -49,11 +53,8 @@ const errorBody = (params: {
   ...(params.details === undefined ? {} : { details: params.details }),
 });
 
-/**
- * 型付きエラーに翻訳できない失敗 (throw されたもの) に対する応答。
- * 外に見せる形は 500 と同じでなければならないので、翻訳表と同じファイルに置く。
- */
-export const defectResponse: ErrorResponse = {
+/** 500 の応答は 2 つの事由で共有する (外から見て区別がつかないのが正しい)。 */
+const internalServerErrorResponse: ErrorResponse = {
   status: HttpStatus.InternalServerError,
   body: errorBody({
     errorCode: ErrorCode.InternalServerError,
@@ -122,11 +123,9 @@ export const handleErrorResponse = (error: ApplicationError): ErrorResponse =>
     }),
 
     // インフラ由来。原因 (cause) は外に出さず、ログにのみ残す。
-    RepositoryError: () => ({
-      status: HttpStatus.InternalServerError,
-      body: errorBody({
-        errorCode: ErrorCode.InternalServerError,
-        message: ErrorMessage.InternalServerError,
-      }),
-    }),
+    RepositoryError: () => internalServerErrorResponse,
+
+    // 型付きエラーに翻訳できなかったもの (throw されたものの受け皿)。
+    // 外に見せる形は RepositoryError と同じ — **どこで壊れたかを客に教えない**。
+    InternalServerError: () => internalServerErrorResponse,
   });
