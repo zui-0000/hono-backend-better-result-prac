@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output (リポジトリ直下のみ。schema/dist 等サブプロジェクトの生成物は各自で管理)
+/dist/
+/build/
+
+# orval が OpenAPI から生成する zod コード (契約から prepare で再生成するため追跡しない)
+/src/generated/
+
+# Logs
+*.log
+logs/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Bun (このプロジェクトは pnpm で install するため bun.lock は生成させない方針)
+bun.lockb
+
+# Editor / OS
+.DS_Store
+.idea/
+*.swp
+
+# Test coverage
+coverage/

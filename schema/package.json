@@ -1,0 +1,17 @@
+{
+  "name": "schema",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "pnpm run format && tsp compile src",
+    "format": "tsp format .",
+    "preview": "echo 'Redoc: http://localhost:8080' && docker compose up",
+    "check:updates": "pnpm outdated --long"
+  },
+  "devDependencies": {
+    "@typespec/compiler": "^1.15.0",
+    "@typespec/http": "^1.15.0",
+    "@typespec/openapi": "^1.15.0",
+    "@typespec/openapi3": "^1.15.0"
+  }
+}

@@ -1,0 +1,32 @@
+import { Result } from "better-result";
+import { eq } from "drizzle-orm";
+
+import type { Database } from "~/shared/infrastructure/db/database-client";
+import { handleDbError } from "~/shared/infrastructure/db/error/handle-db-error";
+
+import type { GetUserQueryService } from "../application/get-user-query-service";
+import { tUser } from "./drizzle-schema";
+
+/**
+ * GetUserQueryService の Drizzle 実装 (アダプタ)。
+ *
+ * SELECT の射影をそのまま DTO の形にしているため、集約への復元も parse も挟まない
+ * (**ドメインを一切 import しないのが Query 側の実装の特徴**)。
+ * 必要な列だけを取るので、集約の全列を読む Repository より素直かつ軽い。
+ */
+export const createGetUserQueryService = (
+  db: Database,
+): GetUserQueryService => ({
+  execute: async ({ id }) =>
+    (
+      await Result.tryPromise(() =>
+        db
+          .select({ name: tUser.name, mailAddress: tUser.mailAddress })
+          .from(tUser)
+          .where(eq(tUser.id, id))
+          .limit(1),
+      )
+    )
+      .mapError(handleDbError)
+      .map((rows) => rows[0]),
+});

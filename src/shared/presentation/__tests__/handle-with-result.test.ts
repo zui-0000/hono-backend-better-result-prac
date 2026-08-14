@@ -1,0 +1,74 @@
+import { describe, expect, test } from "bun:test";
+
+import { makeDeps } from "~/__mocks__/app-deps";
+import { FIXED_UUID, headers, makeUser, REQUEST_ID } from "~/__mocks__/data";
+import { createApp } from "~/app";
+import { ErrorCode } from "~/shared/presentation/constants/error-code";
+import { ErrorMessage } from "~/shared/presentation/constants/error-message";
+import { HttpHeader } from "~/shared/presentation/constants/http-header";
+import { HttpStatus } from "~/shared/presentation/constants/http-status";
+
+import { handleWithResult } from "../handle-with-result";
+
+describe(handleWithResult.name, () => {
+  test("throw されても契約どおりの 500 と相関 ID を返すこと", async () => {
+    // 放っておくと Hono 既定の平文 500 が返り、契約と違う形になったうえ
+    // ログも残らない。**この受け皿 1 つで全 throw を覆う。**
+    const deps = makeDeps({
+      getUserQueryService: {
+        execute: async () => {
+          throw new Error("想定外の失敗");
+        },
+      },
+    });
+
+    const response = await createApp(deps).request(`/users/${FIXED_UUID}`, {
+      headers,
+    });
+
+    expect(response.status).toBe(HttpStatus.InternalServerError);
+    expect(await response.json()).toStrictEqual({
+      errorCode: ErrorCode.InternalServerError,
+      message: ErrorMessage.InternalServerError,
+    });
+    expect(response.headers.get(HttpHeader.RequestId)).toBe(REQUEST_ID);
+  });
+
+  test("応答が契約とズレたら 500 になること (握り潰さない)", async () => {
+    // クエリ側はドメインを経由しないので、ここが唯一の関所。
+    const deps = makeDeps({
+      getUserQueryService: {
+        execute: async () =>
+          // 契約に無い形 (name が欠けている)
+          ({
+            isOk: () => true,
+            value: { mailAddress: "a@example.com" },
+          }) as never,
+      },
+    });
+
+    const response = await createApp(deps).request(`/users/${FIXED_UUID}`, {
+      headers,
+    });
+
+    expect(response.status).toBe(HttpStatus.InternalServerError);
+  });
+
+  test("204 に本文も Content-Type も付かないこと", async () => {
+    const deps = makeDeps({
+      userRepository: {
+        findById: async () =>
+          (await import("better-result")).Result.ok(makeUser()),
+      },
+    });
+
+    const response = await createApp(deps).request(`/users/${FIXED_UUID}`, {
+      method: "DELETE",
+      headers,
+    });
+
+    expect(response.status).toBe(HttpStatus.NoContent);
+    expect(await response.text()).toBe("");
+    expect(response.headers.get("content-type")).toBeNull();
+  });
+});

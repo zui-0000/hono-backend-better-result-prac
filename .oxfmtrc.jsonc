@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  // 整形設定は Prettier 互換の既定のまま (2スペース / 80幅 / セミコロン / ダブルクォート)。
+  // .gitignore と .prettierignore は自動で尊重されるので、追加の除外だけをここに書く
+  // (src/generated は gitignore 済みで、orval の afterAllFilesWrite が個別に整形する)。
+  "ignorePatterns": [
+    "db/migrations/", // drizzle-kit の生成物 (SQL / meta JSON)。人が書くものではない
+    "schema/", // TypeSpec の別プロジェクト。整形は tsp format が担う
+  ],
+
+  // import を並べ替える。グループ順は既定のまま (遠い順)。各グループ内は名前順。
+  //```ts
+  //   import { Result } from "better-result";      // 外部パッケージ
+  //
+  //   import { db } from "~/shared/db/client";     // 内部 (~/ は既定で内部扱い)
+  //
+  //   import { tUser } from "./drizzle-schema";    // 相対 (../ ./)
+  //```
+  // 副作用 import (import "dotenv/config") は動かさない。順序自体に意味があるため。
+  "sortImports": true,
+}

@@ -1,0 +1,350 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // デフォルトで有効なプラグイン。
+  //   typescript = TS 特有ルール / unicorn = モダン JS の慣習 / oxc = Oxc 独自ルール
+  "plugins": ["typescript", "unicorn", "oxc"],
+  // カテゴリ単位で一括設定。correctness = "明確に間違い/無意味なコード" のみ error。
+  //
+  // **他のカテゴリは足さない。** 2026-08-14 に全カテゴリを warn で通して測った結果、
+  // 779 件。上位は sort-imports 139 / sort-keys 101 / one-var 96 / no-async-await 66 /
+  // id-length 61。件数ではなく中身で落とした。
+  //
+  // **Result 型のメソッド名が配列のそれと衝突する**ため、この codebase で
+  // いちばん多い書き方が軒並み誤検出になる。
+  //   .map(handleDbError)          → Array.prototype.map と誤認
+  //                                  (no-array-callback-reference の 10 件すべて)
+  //   (await ...).mapError(...)    → no-await-expression-member の 11 件すべて。
+  //                                  エラー翻訳のチェーンそのものなので、入れると書けなくなる
+  //   _tag                         → TaggedError の判別子 (no-underscore-dangle)
+  // style/restriction は方針とも衝突する (sort-keys は ErrorCode の
+  // HTTP ステータス順を壊し、no-async-await は 66 件)。
+  //
+  // > **原因はライブラリ固有ではない。** 「Result 型がメソッド名を配列と共有すること」
+  // > そのものなので、別の Result 実装に替えても同じ衝突が起きる。
+  //
+  // 個別に採るものは下の "rules" に書く。
+  "categories": {
+    "correctness": "error",
+  },
+  // 個別ルールの上書きはここに書く (例: "no-console": "error")。
+  "rules": {
+    // ファイル名は kebab-case (ハイフン繋ぎ) を強制。
+    // OS 間の大小事故 (macOS/Windows は大小無視) と命名ブレを防ぐ。
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }],
+    // 型としてしか使わない import は `import type` で書く。
+    //
+    // fixStyle は既定の separate-type-imports のまま。inline も試したが、
+    // **verbatimModuleSyntax と組み合わせると実害がある**。宣言全体が型のとき、
+    // inline (`import { type Foo } from "m"`) は `import {} from "m"` を出力に残す
+    // = 型しか使っていないモジュールを実行時に読み込む。宣言ごと `import type` に
+    // すれば丸ごと消える (2026-08-12 に tsc --verbatimModuleSyntax で実測)。
+    //
+    // 結果として同じモジュールから 2 行出ることがあるが、それは冗長ではなく
+    // **出力が分かれることの反映**。値と型が混ざる宣言は 1 行のまま
+    // (`import { Result } from "better-result"` + 型) で、こちらは inline になる。
+    "typescript/consistent-type-imports": "error",
+    // 正規表現に u フラグを必須にする。
+    // 不正なエスケープがエラーになり、\w や \d の意味がロケールで揺れなくなる。
+    // 全カテゴリを測ったなかで**偽陽性がゼロだった唯一のルール** (6 件・全部実在)。
+    "require-unicode-regexp": "error",
+    // 既定として、生成コード (API 契約) はどこからも使わせない。
+    // 唯一の例外である presentation 層だけ、下の overrides で許可する。
+    // ここに書いておくことで、どの override にも当たらないファイル
+    // (src/main.ts / app.ts / app-deps.ts) も覆える。
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["~/generated/**", "**/generated/**"],
+            "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。契約の型が内側へ漏れると、契約を変えるたびにドメインまで書き換えが波及します。",
+          },
+          {
+            "group": [
+              "~/shared/presentation/handler/**",
+              "**/shared/presentation/handler/**",
+            ],
+            "message": "shared/presentation/handler は handleWithResult の部品置き場です。直下の公開面 (handle-with-result / decode-input / resolve-request-id / handle-not-found) を使ってください。",
+          },
+        ],
+      },
+    ],
+  },
+  // builtin グローバル (console, URL 等) を認識させる。
+  "env": {
+    "builtin": true,
+  },
+  // orval が生成するコードは lint 対象外 (手で編集しないため)。
+  "ignorePatterns": ["src/generated/"],
+  // --- 層の境界 (エディタ上で即座に気付くための速い防波堤) ---
+  //
+  // no-restricted-imports は import 文の「文字列」を見るため、相対パスと ~ 別名の
+  // 両方を書く必要がある。取りこぼしのない厳密な検査は dependency-cruiser
+  // (モジュールを解決してから判定する) が担当し、こちらは頻出パターンを速く弾く役。
+  //
+  // 重要: overrides の同名ルールは **マージされず、後に当たったものが丸ごと置き換える**。
+  // そのため層ごとに override を 1 つだけ用意し、その層に必要な group を
+  // すべて書ききる (2 つに分けると先に書いた制約が消える)。
+  // 例: 以前 domain に 2 つの override を当てていたため、
+  //     domain からの DB / generated 参照が素通りしていた。
+  "overrides": [
+    {
+      // domain は外側をいっさい知らない (依存は常に内向き)。
+      "files": ["src/contexts/*/domain/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/application/**",
+                  "**/presentation/**",
+                  "**/infrastructure/**",
+                  "~/shared/db/**",
+                  "**/shared/db/**",
+                ],
+                "message": "domain は application / presentation / 実装 / DB を知りません。値なら引数で受け取り、副作用なら domain/ にポート (型) を定義してください。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // application は手順だけを決める。実装は知らない。
+      // public (他コンテキストへ公開するポート) も同じ制約。あちらは
+      // 「外から使ってよい面」という宣言であって、実装を知ってよいわけではない。
+      "files": ["src/contexts/*/application/**", "src/contexts/*/public/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/infrastructure/**",
+                  "**/presentation/**",
+                  "~/shared/db/**",
+                  "**/shared/db/**",
+                ],
+                "message": "application は実装や DB を知りません。ポート (型) 越しに使い、実装の結線は src/app-deps.ts が行います。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // クエリ側は書き込みモデル (集約 / Repository) を知らない。
+      //
+      // 1 つ上の application / public の override に **当たり直す** ファイル群なので、
+      // あちらの group をすべて書き写したうえで 3 つ目を足している
+      // (後勝ちで丸ごと置き換わるため、書き写さないと実装参照が素通りする)。
+      "files": [
+        "src/contexts/*/application/*-query.ts",
+        "src/contexts/*/application/*-query-service.ts",
+        "src/contexts/*/public/*-query-service.ts",
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "**/infrastructure/**",
+                  "**/presentation/**",
+                  "~/shared/db/**",
+                  "**/shared/db/**",
+                ],
+                "message": "application は実装や DB を知りません。ポート (型) 越しに使い、実装の結線は src/app-deps.ts が行います。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。",
+              },
+              {
+                // value-objects/ は 1 階層下なので、`/` を跨がない `*` には当たらない。
+                "group": [
+                  "../domain/model/*",
+                  "../../domain/model/*",
+                  "~/contexts/*/domain/model/*",
+                  "**/contexts/*/domain/model/*",
+                  "../domain/*-repository",
+                  "../../domain/*-repository",
+                  "~/contexts/*/domain/*-repository",
+                  "**/contexts/*/domain/*-repository",
+                ],
+                "message": "クエリは集約を復元しません。必要な項目だけの射影を query-service に定義し、SELECT でその形を直接作ってください (GetUserQueryOutput が例)。値オブジェクトとドメインサービスは使えます。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // infrastructure は DB を触ってよいが、HTTP と API 契約は知らない。
+      "files": ["src/contexts/*/infrastructure/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/presentation/**"],
+                "message": "infrastructure は presentation を知りません。依存の向きは内向きです。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。永続化の形は契約と独立に決めます。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // presentation は生成スキーマを使ってよい唯一の層。ただし実装もドメインも掴まない。
+      "files": ["src/contexts/*/presentation/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/contexts/*/domain/**", "../domain/**"],
+                "message": "presentation は contexts の domain を知りません。値オブジェクトが要るなら application の入力スキーマ (XxxCommandInput / XxxQueryInput) を decodeInput に通し、判定が要るなら application の関数を呼んでください。認可を controller / routes に書くと経路ごとに散ります。",
+              },
+              {
+                "group": [
+                  "**/infrastructure/**",
+                  "~/shared/db/**",
+                  "**/shared/db/**",
+                ],
+                "message": "controller は実装や DB を直接掴みません。application の command / query を呼び、実装の結線は src/app-deps.ts に任せます。",
+              },
+              {
+                "group": [
+                  "~/shared/presentation/handler/**",
+                  "**/shared/presentation/handler/**",
+                ],
+                "message": "shared/presentation/handler は handleWithResult の部品置き場です。直下の公開面 (handle-with-result / decode-input / resolve-request-id / handle-not-found) を使ってください。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // shared は contexts を知らない。合成ルート (src/app-deps.ts) だけが実装を知る。
+      // 横断サービスもポート (domain/) と実装 (infrastructure/) を分けてあるため、
+      // shared の中でもポート側から実装側は掴まない。
+      "files": ["src/shared/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["~/contexts/**", "**/contexts/**"],
+                "message": "shared から contexts への依存は逆方向です。共有基盤は個別コンテキストを知りません。",
+              },
+              {
+                "group": ["**/infrastructure/**"],
+                "message": "実装ではなくポート (型) を参照してください。例: bunPasswordHasher ではなく PasswordHasher。実装の結線は src/app-deps.ts だけが行います。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // shared/application はユースケースの共通部品を置く層 (例: orNotFound)。
+      // contexts の application と同じく presentation を知ってはいけないが、
+      // src/shared/** の override は presentation を禁じていない
+      // (shared/presentation 自身がそこに含まれるため)。
+      // overrides は後勝ちで丸ごと置換されるので、src/shared/** より後ろに置いて
+      // 必要な group をすべて書き直す。
+      "files": ["src/shared/application/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["~/contexts/**", "**/contexts/**"],
+                "message": "shared から contexts への依存は逆方向です。共有基盤は個別コンテキストを知りません。",
+              },
+              {
+                "group": ["**/infrastructure/**", "**/presentation/**"],
+                "message": "application は実装や HTTP を知りません。ポート (型) 越しに使い、実装の結線は src/app-deps.ts が行います。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // shared/infrastructure は横断サービスの本番実装 (Bun 依存など) を置く層。
+      // 自分が実装なので上の infrastructure 禁止からは外れる必要があり、
+      // かつ overrides は後勝ちで丸ごと置換されるため、
+      // src/shared/** より後ろに置いたうえで必要な group を書き直している。
+      "files": ["src/shared/infrastructure/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["~/contexts/**", "**/contexts/**"],
+                "message": "shared から contexts への依存は逆方向です。共有基盤は個別コンテキストを知りません。",
+              },
+              {
+                "group": ["**/presentation/**"],
+                "message": "infrastructure は presentation を知りません。依存の向きは内向きです。",
+              },
+              {
+                "group": ["~/generated/**", "**/generated/**"],
+                "message": "生成スキーマ (API 契約) を使ってよいのは presentation 層だけです。",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // テストの資材は境界ルールの対象外。dependency-cruiser 側の exclude と揃える。
+      //
+      // ルールが守っているのは**本番コードの構造**で、テストは元からその外側にいる。
+      // とくに API テストは、リクエストのボディを生成スキーマ (契約) の Encoded 型で
+      // 縛るために ~/generated を参照する。**契約こそが API テストの試験対象**なので、
+      // ここを禁じると「契約と一致していること」を型で確かめる手段が無くなる。
+      //
+      // ignorePatterns で丸ごと外さないのは、未使用変数などの検出まで消えるため。
+      // 切るのは境界ルールだけにする。
+      //
+      // overrides は後勝ちで丸ごと置換されるので、必ず最後に置く。
+      "files": ["src/**/__tests__/**", "src/__mocks__/**"],
+      "rules": {
+        "no-restricted-imports": "off",
+      },
+    },
+  ],
+}

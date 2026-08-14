@@ -1,0 +1,662 @@
+openapi: 3.2.0
+info:
+  title: hono-backend-better-result-prac backend API
+  version: 0.1.0
+  description: hono-backend-better-result-prac のバックエンド API (users / auth)
+tags:
+  - name: Users
+  - name: Auth
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      description: ログイン (メール・パスワードでトークンを発行する。認証不要)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+      responses:
+        '200':
+          description: ログイン成功。リフレッシュトークンは HttpOnly Cookie で返す
+          headers:
+            Set-Cookie:
+              required: true
+              description: refresh_token を設定する Set-Cookie。HttpOnly のため JS からは読めない
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+  /auth/logout:
+    post:
+      operationId: logout
+      description: ログアウト (要認証。リフレッシュトークンを失効させ、Cookie も消す)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+      responses:
+        '204':
+          description: ログアウト成功。Cookie を空の値で上書きして消す
+          headers:
+            Set-Cookie:
+              required: true
+              description: refresh_token を空値・Max-Age=0 で上書きして消す Set-Cookie
+              schema:
+                type: string
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Auth
+      security:
+        - BearerAuth: []
+  /auth/refresh:
+    post:
+      operationId: refresh
+      description: アクセストークンを再発行する (券は HttpOnly Cookie で受け取る。認証不要)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+        - name: refresh_token
+          in: cookie
+          required: true
+          schema:
+            $ref: '#/components/schemas/RefreshToken'
+          explode: false
+      responses:
+        '200':
+          description: 更新成功。ローテーションした券を Cookie で差し替える
+          headers:
+            Set-Cookie:
+              required: true
+              description: refresh_token を新しい券で上書きする Set-Cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshResponse'
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Auth
+  /users:
+    post:
+      operationId: createUser
+      description: ユーザーを新規作成する (サインアップ想定のため認証不要)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+      responses:
+        '201':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateUserResponse'
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '409':
+          description: メールアドレスが既に使用されている
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailAddressDuplicationError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+  /users/{id}:
+    get:
+      operationId: getUser
+      description: IDを指定してユーザーを取得する (要認証)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetUserResponse'
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '403':
+          description: 操作する権限が無い (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: リソースが見つからない (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceNotFoundError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+    put:
+      operationId: updateUser
+      description: ユーザーを更新する (要認証)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '204':
+          description: 成功
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '403':
+          description: 操作する権限が無い (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: リソースが見つからない (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceNotFoundError'
+        '409':
+          description: メールアドレスが既に使用されている
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MailAddressDuplicationError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      security:
+        - BearerAuth: []
+    delete:
+      operationId: deleteUser
+      description: ユーザーを削除する (要認証)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '204':
+          description: 成功
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '403':
+          description: 操作する権限が無い (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: リソースが見つからない (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceNotFoundError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+  /users/{id}/password:
+    put:
+      operationId: changePassword
+      description: パスワードを変更する (要認証。現在のパスワードで本人確認する)
+      parameters:
+        - $ref: '#/components/parameters/CommonHeaders'
+        - name: id
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      responses:
+        '204':
+          description: 成功
+        '400':
+          description: リクエスト内容が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '401':
+          description: 認証情報が不正 (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnauthorizedError'
+        '403':
+          description: 操作する権限が無い (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForbiddenError'
+        '404':
+          description: リソースが見つからない (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResourceNotFoundError'
+        '500':
+          description: サーバーエラー (汎用)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalServerError'
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      security:
+        - BearerAuth: []
+components:
+  parameters:
+    CommonHeaders:
+      name: X-Request-Id
+      in: header
+      required: true
+      description: リクエストの相関ID。クライアントが UUID v7 で採番して必ず送る
+      schema:
+        $ref: '#/components/schemas/RequestId'
+  schemas:
+    AccessToken:
+      type: string
+      minLength: 20
+      maxLength: 2048
+      pattern: ^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$
+      format: password
+      description: アクセストークン(JWT想定)。認可に使用する。
+      title: AccessToken
+      examples:
+        - eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNzM1NzE4NDAwfQ.srCq5l7u2mKq8eM4X4g5wqVd5J9Jw7V0q1c2d3e4f5g
+    BadRequestError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorDetail'
+      description: リクエスト内容が不正 (汎用)
+      title: BadRequestError
+      examples:
+        - errorCode: '4000'
+          message: リクエスト内容が不正です
+          details:
+            - field: mailAddress
+              message: メールアドレスの形式が不正です
+    ChangePasswordRequest:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+      properties:
+        currentPassword:
+          $ref: '#/components/schemas/Password'
+        newPassword:
+          $ref: '#/components/schemas/Password'
+      title: ChangePasswordRequest
+    CreateUserRequest:
+      type: object
+      required:
+        - name
+        - mailAddress
+        - password
+      properties:
+        name:
+          $ref: '#/components/schemas/UserName'
+        mailAddress:
+          $ref: '#/components/schemas/MailAddress'
+        password:
+          $ref: '#/components/schemas/Password'
+      title: CreateUserRequest
+    CreateUserResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+      title: CreateUserResponse
+    ErrorCode:
+      type: string
+      description: エラーコード
+      title: ErrorCode
+      examples:
+        - '4000'
+    ErrorDetail:
+      type: object
+      required:
+        - field
+        - message
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+      description: バリデーションエラーの詳細
+      title: ErrorDetail
+    ErrorMessage:
+      type: string
+      description: エラーメッセージ
+      title: ErrorMessage
+      examples:
+        - リクエスト内容が不正です
+    ForbiddenError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+      description: 操作する権限が無い (汎用)
+      title: ForbiddenError
+      examples:
+        - errorCode: '4030'
+          message: この操作を行う権限がありません
+    GetUserResponse:
+      type: object
+      required:
+        - name
+        - mailAddress
+      properties:
+        name:
+          $ref: '#/components/schemas/UserName'
+        mailAddress:
+          $ref: '#/components/schemas/MailAddress'
+      title: GetUserResponse
+    InternalServerError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+      description: サーバー内部で予期せぬエラーが発生した (汎用)
+      title: InternalServerError
+      examples:
+        - errorCode: '5000'
+          message: サーバーで予期せぬエラーが発生しました
+    LoginRequest:
+      type: object
+      required:
+        - mailAddress
+        - password
+      properties:
+        mailAddress:
+          $ref: '#/components/schemas/MailAddress'
+        password:
+          $ref: '#/components/schemas/Password'
+      title: LoginRequest
+    LoginResponse:
+      type: object
+      required:
+        - accessToken
+      properties:
+        accessToken:
+          $ref: '#/components/schemas/AccessToken'
+      title: LoginResponse
+    MailAddress:
+      type: string
+      maxLength: 255
+      pattern: ^[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?$
+      description: メールアドレス (RFC 5322準拠)。大文字小文字は区別せず同一のアドレスとして扱うが、送った表記はそのまま保存され、そのまま返る
+      title: MailAddress
+      examples:
+        - user@example.com
+    MailAddressDuplicationError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+      description: メールアドレスが既に使用されている
+      title: MailAddressDuplicationError
+      examples:
+        - errorCode: '4091'
+          message: メールアドレスが既に使用されています
+    Password:
+      type: string
+      minLength: 12
+      maxLength: 128
+      format: password
+      description: パスワード(平文)。入力専用で、レスポンスに含めないこと。
+      title: Password
+      examples:
+        - '************'
+    RefreshResponse:
+      type: object
+      required:
+        - accessToken
+      properties:
+        accessToken:
+          $ref: '#/components/schemas/AccessToken'
+      title: RefreshResponse
+    RefreshToken:
+      type: string
+      minLength: 20
+      maxLength: 2048
+      format: password
+      description: リフレッシュトークン(不透明トークン想定)。アクセストークン再発行に使用する。
+      title: RefreshToken
+      examples:
+        - rt_2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f
+    RequestId:
+      type: string
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      description: リクエストの相関ID (UUID v7)。クライアントが採番し、サーバーのログと突き合わせて追跡する
+      title: RequestId
+      examples:
+        - 018eef15-1234-7123-8123-123456789abc
+    ResourceNotFoundError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+      description: リソースが存在しない (汎用)
+      title: ResourceNotFoundError
+      examples:
+        - errorCode: '4040'
+          message: 指定されたリソースは存在しません
+    UnauthorizedError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+      description: 認証情報が不正 (汎用)
+      title: UnauthorizedError
+      examples:
+        - errorCode: '4010'
+          message: 認証情報が正しくありません
+    UpdateUserRequest:
+      type: object
+      required:
+        - name
+        - mailAddress
+      properties:
+        name:
+          $ref: '#/components/schemas/UserName'
+        mailAddress:
+          $ref: '#/components/schemas/MailAddress'
+      title: UpdateUserRequest
+    UserId:
+      type: string
+      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
+      description: ユーザーID (UUID v7)
+      title: UserId
+      examples:
+        - 018eef15-1234-7123-8123-123456789abc
+    UserName:
+      type: string
+      minLength: 1
+      maxLength: 100
+      description: ユーザー名
+      title: UserName
+      examples:
+        - 山田太郎
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: Bearer

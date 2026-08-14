@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1785624353719,
+      "tag": "20260801224553_create_t_user",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786148948835,
+      "tag": "20260808002908_create_t_refresh_token",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786153381316,
+      "tag": "20260808014301_add_revoked_reason",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786401672330,
+      "tag": "20260810224112_mail_address_case_insensitive_unique",
+      "breakpoints": true
+    }
+  ]
+}
