@@ -15,6 +15,12 @@ model UnauthorizedErrorResponse {
   @body error: UnauthorizedError;
 }
 
+/** 現在のパスワードが一致しない */
+model PasswordMismatchErrorResponse {
+  @statusCode statusCode: 401;
+  @body error: PasswordMismatchError;
+}
+
 /** 操作する権限が無い (汎用) */
 model ForbiddenErrorResponse {
   @statusCode statusCode: 403;

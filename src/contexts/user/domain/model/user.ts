@@ -6,7 +6,7 @@ import { MailAddress } from "~/shared/domain/model/value-objects/mail-address";
 import type { Password } from "~/shared/domain/model/value-objects/password";
 import type { PasswordHasher } from "~/shared/domain/password-hasher";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
-import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
+import { PasswordMismatchError } from "~/shared/errors/password-mismatch-error";
 
 import { UserHashedPassword } from "./value-objects/user-hashed-password";
 import { UserId } from "./value-objects/user-id";
@@ -14,14 +14,6 @@ import { UserName } from "./value-objects/user-name";
 
 /**
  * User 集約ルート。フレームワーク非依存の純粋なドメインモデル。
- * イミュータブル: 値を書き換えず、状態を変える操作は新しい User を返す。
- *
- * バレル (index.ts) を置かない方針のため、エクスポート名はそれ自体で何の集約かが
- * 分かる形にする (Model ではなく User、create ではなく createUser)。
- *
- * **依存は第 1 引数で受ける。** ユースケース (application) がファクトリで依存を
- * 先に食わせるのに対し、ドメインの関数は呼び出し側が既に持っているものを渡すだけ。
- * 配線は 1 箇所 (合成ルート) に集めたいが、ここは配線点ではない。
  */
 export const User = z.object({
   id: UserId,
@@ -33,7 +25,9 @@ export const User = z.object({
 });
 export type User = z.infer<typeof User>;
 
-/** 新規ユーザーを生成する (id を採番し、作成/更新日時を現在時刻に)。 */
+/**
+ * 新規ユーザーを生成する (id を採番し、作成/更新日時を現在時刻に)。
+ */
 export const createUser = (
   deps: { readonly uuidGenerator: UuidGenerator; readonly clock: Clock },
   params: {
@@ -83,12 +77,12 @@ export const verifyUserPassword = async (
   deps: { readonly passwordHasher: PasswordHasher },
   user: User,
   plainText: Password,
-): Promise<Result<void, UnauthorizedError>> => {
+): Promise<Result<void, PasswordMismatchError>> => {
   const matched = await deps.passwordHasher.verify(
     plainText,
     user.hashedPassword,
   );
-  return matched ? Result.ok() : Result.err(new UnauthorizedError());
+  return matched ? Result.ok() : Result.err(new PasswordMismatchError());
 };
 
 /**

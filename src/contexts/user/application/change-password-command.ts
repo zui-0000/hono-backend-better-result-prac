@@ -6,9 +6,9 @@ import type { Clock } from "~/shared/domain/clock";
 import { Password } from "~/shared/domain/model/value-objects/password";
 import type { PasswordHasher } from "~/shared/domain/password-hasher";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
+import type { PasswordMismatchError } from "~/shared/errors/password-mismatch-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
-import type { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import { changeUserPassword, verifyUserPassword } from "../domain/model/user";
 import { UserHashedPassword } from "../domain/model/value-objects/user-hashed-password";
@@ -44,7 +44,7 @@ export const createChangePasswordCommand =
       void,
       | ForbiddenError
       | ResourceNotFoundError
-      | UnauthorizedError
+      | PasswordMismatchError
       | RepositoryError
     >
   > =>

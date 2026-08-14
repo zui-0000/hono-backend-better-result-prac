@@ -81,6 +81,7 @@ namespace BackendApi {
       | SuccessNoContentResponse
       | BadRequestErrorResponse
       | UnauthorizedErrorResponse
+      | PasswordMismatchErrorResponse
       | ForbiddenErrorResponse
       | NotFoundErrorResponse
       | InternalServerErrorResponse;

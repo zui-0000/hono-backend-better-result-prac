@@ -356,7 +356,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UnauthorizedError'
+                anyOf:
+                  - $ref: '#/components/schemas/UnauthorizedError'
+                  - $ref: '#/components/schemas/PasswordMismatchError'
         '403':
           description: 操作する権限が無い (汎用)
           content:
@@ -576,6 +578,21 @@ components:
       title: Password
       examples:
         - '************'
+    PasswordMismatchError:
+      type: object
+      required:
+        - errorCode
+        - message
+      properties:
+        errorCode:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          $ref: '#/components/schemas/ErrorMessage'
+      description: 現在のパスワードが一致しない
+      title: PasswordMismatchError
+      examples:
+        - errorCode: '4011'
+          message: 現在のパスワードが正しくありません
     RefreshResponse:
       type: object
       required:

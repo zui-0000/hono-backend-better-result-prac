@@ -6,6 +6,7 @@ import type { ErrorDetail } from "~/shared/errors/error-detail";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
 import type { InternalServerError } from "~/shared/errors/internal-server-error";
 import type { MailAddressDuplicationError } from "~/shared/errors/mail-address-duplication-error";
+import type { PasswordMismatchError } from "~/shared/errors/password-mismatch-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
 import type { UnauthorizedError } from "~/shared/errors/unauthorized-error";
@@ -24,6 +25,7 @@ import { HttpStatus } from "../constants/http-status";
 export type ApplicationError =
   | BadRequestError
   | UnauthorizedError
+  | PasswordMismatchError
   | ForbiddenError
   | ResourceNotFoundError
   | ConflictError
@@ -86,6 +88,15 @@ export const handleErrorResponse = (error: ApplicationError): ErrorResponse =>
       body: errorBody({
         errorCode: ErrorCode.Unauthorized,
         message: ErrorMessage.Unauthorized,
+      }),
+    }),
+
+    // 401 のまま errorCode だけ分ける (打ち間違いだとクライアントに伝えるため)。
+    PasswordMismatchError: () => ({
+      status: HttpStatus.Unauthorized,
+      body: errorBody({
+        errorCode: ErrorCode.PasswordMismatch,
+        message: ErrorMessage.PasswordMismatch,
       }),
     }),
 

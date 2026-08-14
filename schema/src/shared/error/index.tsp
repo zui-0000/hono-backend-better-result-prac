@@ -6,5 +6,6 @@ import "./ConflictError.tsp";
 import "./ForbiddenError.tsp";
 import "./InternalServerError.tsp";
 import "./MailAddressDuplicationError.tsp";
+import "./PasswordMismatchError.tsp";
 import "./ResourceNotFoundError.tsp";
 import "./UnauthorizedError.tsp";

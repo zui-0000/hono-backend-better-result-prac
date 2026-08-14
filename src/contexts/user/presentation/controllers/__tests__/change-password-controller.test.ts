@@ -14,6 +14,7 @@ import { createApp } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import type { User } from "~/contexts/user/domain/model/user";
 import { UserHashedPassword } from "~/contexts/user/domain/model/value-objects/user-hashed-password";
+import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
 import { createChangePasswordController } from "../change-password-controller";
@@ -55,8 +56,11 @@ describe(createChangePasswordController.name, () => {
     expect(updated[0]?.createdAt).toStrictEqual(new Date(0));
   });
 
-  test("現在のパスワードが違えば 401 を返し、永続化しないこと", async () => {
+  test("現在のパスワードが違えば 4011 を返し、永続化しないこと", async () => {
     // **トークンを盗まれてもパスワードは変えられない**という守り。
+    //
+    // status ではなく errorCode を見る。汎用 401 (4010) と同じステータスなので、
+    // ここを見ないと打ち間違いと区別できているか確かめられない。
     const updated: User[] = [];
     const deps = makeDeps({
       userRepository: {
@@ -72,6 +76,9 @@ describe(createChangePasswordController.name, () => {
     const response = await put(deps);
 
     expect(response.status).toBe(HttpStatus.Unauthorized);
+    expect(((await response.json()) as { errorCode: string }).errorCode).toBe(
+      ErrorCode.PasswordMismatch,
+    );
     expect(updated).toStrictEqual([]);
   });
 
