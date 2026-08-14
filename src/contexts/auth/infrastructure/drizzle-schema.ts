@@ -1,4 +1,23 @@
-import { index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  check,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+import { RevokedReasonEnum } from "../domain/model/refresh-token";
+
+/**
+ * 許される失効理由。**ドメインの定数から引く** — ここで文字列を書き写すと、
+ * 理由を足したときに DDL だけが古いまま残る。
+ */
+const REVOKED_REASONS = [
+  RevokedReasonEnum.Rotated,
+  RevokedReasonEnum.Revoked,
+] as const;
 
 /**
  * auth コンテキストが所有するテーブル定義 (Drizzle スキーマ)。
@@ -47,9 +66,7 @@ export const tRefreshToken = pgTable(
     // なぜ失効したか。**猶予期間はローテーション専用の救済**なので、
     // 時刻だけでは足りない (rotated / revoked を区別しないと、ログアウトや
     // 盗難検出のあと 30 秒間その券が通ってしまう)。
-    revokedReason: text("revoked_reason", {
-      enum: ["rotated", "revoked"],
-    }),
+    revokedReason: text("revoked_reason", { enum: REVOKED_REASONS }),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -60,5 +77,18 @@ export const tRefreshToken = pgTable(
     index("t_refresh_token_session_id_idx").on(table.sessionId),
     // 盗難を検出したとき、その利用者の券をまとめて切る経路。
     index("t_refresh_token_user_id_idx").on(table.userId),
+
+    // drizzle の `enum` は TypeScript を狭めるだけで DDL には出ない (実測: 制約が
+    // 無い状態では任意の文字列が入った)。読み出しは RefreshToken.parse を通るので、
+    // 壊れた値は 500 になって初めて分かる。**書き込み時に落とすため**に制約を置く。
+    //
+    // pgEnum ではなく CHECK にしたのは、値の削除・改名が DROP/ADD CONSTRAINT だけで
+    // 済むから。この語彙は増えるし名前も変わりうる (enum は型を作り直して列の移行が要る)。
+    check(
+      "t_refresh_token_revoked_reason_check",
+      sql.raw(
+        `revoked_reason in (${REVOKED_REASONS.map((r) => `'${r}'`).join(", ")})`,
+      ),
+    ),
   ],
 );

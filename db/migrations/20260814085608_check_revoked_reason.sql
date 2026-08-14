@@ -1,0 +1,1 @@
+ALTER TABLE "t_refresh_token" ADD CONSTRAINT "t_refresh_token_revoked_reason_check" CHECK (revoked_reason in ('rotated', 'revoked'));

@@ -29,6 +29,13 @@
       "when": 1786401672330,
       "tag": "20260810224112_mail_address_case_insensitive_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786697768768,
+      "tag": "20260814085608_check_revoked_reason",
+      "breakpoints": true
     }
   ]
 }
