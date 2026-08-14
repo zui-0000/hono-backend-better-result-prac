@@ -20,7 +20,7 @@ import { createApp } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import {
   type RefreshToken,
-  RevokedReason,
+  RevokedReasonEnum,
 } from "~/contexts/auth/domain/model/refresh-token";
 import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/refresh-token-hash";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
@@ -122,7 +122,7 @@ describe(createRefreshController.name, () => {
       expect(rotated).toHaveLength(1);
       expect(rotated[0]?.revoked.id).toBe(stored.id);
       // 理由は rotated。revoked にすると猶予が効かず並行更新が盗難扱いされる。
-      expect(rotated[0]?.revoked.revokedReason).toBe(RevokedReason.Rotated);
+      expect(rotated[0]?.revoked.revokedReason).toBe(RevokedReasonEnum.Rotated);
       expect(rotated[0]?.issued.tokenHash).toBe(NEXT_TOKEN_HASH);
       // **セッションは据え置く。**
       expect(rotated[0]?.issued.sessionId).toBe(stored.sessionId);
@@ -133,7 +133,7 @@ describe(createRefreshController.name, () => {
       const { deps, rotated } = recording(
         makeStored({
           revokedAt: secondsBefore(5),
-          revokedReason: RevokedReason.Rotated,
+          revokedReason: RevokedReasonEnum.Rotated,
         }),
       );
 
@@ -150,7 +150,7 @@ describe(createRefreshController.name, () => {
     test("猶予の外で再利用されたら 401。セッションごと切ること", async () => {
       const stored = makeStored({
         revokedAt: secondsBefore(60),
-        revokedReason: RevokedReason.Rotated,
+        revokedReason: RevokedReasonEnum.Rotated,
       });
       const { deps, rotated, revoked } = recording(stored);
 
@@ -168,7 +168,7 @@ describe(createRefreshController.name, () => {
       const { deps, rotated, revoked } = recording(
         makeStored({
           revokedAt: secondsBefore(5),
-          revokedReason: RevokedReason.Revoked,
+          revokedReason: RevokedReasonEnum.Revoked,
         }),
       );
 
@@ -199,7 +199,7 @@ describe(createRefreshController.name, () => {
         recording(
           makeStored({
             revokedAt: secondsBefore(5),
-            revokedReason: RevokedReason.Revoked,
+            revokedReason: RevokedReasonEnum.Revoked,
           }),
         ).deps,
       ];

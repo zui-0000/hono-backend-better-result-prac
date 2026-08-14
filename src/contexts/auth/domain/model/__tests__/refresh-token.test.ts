@@ -6,11 +6,11 @@ import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 
 import {
   classifyRefreshToken,
-  issueRefreshToken,
+  createRefreshToken,
   type RefreshToken,
   RefreshTokenState,
   revokeRefreshToken,
-  RevokedReason,
+  RevokedReasonEnum,
 } from "../refresh-token";
 import { RefreshTokenHash } from "../value-objects/refresh-token-hash";
 import { RefreshTokenId } from "../value-objects/refresh-token-id";
@@ -47,9 +47,9 @@ const makeToken = (over: Partial<RefreshToken> = {}): RefreshToken => ({
 const secondsAgo = (seconds: number): Date =>
   new Date(NOW.getTime() - seconds * 1000);
 
-describe(issueRefreshToken.name, () => {
-  const issue = () =>
-    issueRefreshToken(
+describe(createRefreshToken.name, () => {
+  const create = () =>
+    createRefreshToken(
       { uuidGenerator, clock },
       { userId: USER_ID, sessionId: SESSION_ID, tokenHash: TOKEN_HASH },
     );
@@ -59,7 +59,7 @@ describe(issueRefreshToken.name, () => {
     // ズレると DB では生きている券をブラウザが先に捨てる (逆なら 401 が増える)。
     const fortnight = 14 * 24 * 60 * 60 * 1000;
 
-    expect(issue().expiresAt).toStrictEqual(
+    expect(create().expiresAt).toStrictEqual(
       new Date(NOW.getTime() + fortnight),
     );
   });
@@ -67,11 +67,11 @@ describe(issueRefreshToken.name, () => {
   test("発行直後は失効していないこと", () => {
     // ここが null でないと、発行したその場で classifyRefreshToken が
     // revoked/reused へ倒れて、ログインした瞬間に使えない券が配られる。
-    const issued = issue();
+    const created = create();
 
-    expect(issued.revokedAt).toBeNull();
-    expect(issued.revokedReason).toBeNull();
-    expect(classifyRefreshToken({ clock }, issued)).toBe(
+    expect(created.revokedAt).toBeNull();
+    expect(created.revokedReason).toBeNull();
+    expect(classifyRefreshToken({ clock }, created)).toBe(
       RefreshTokenState.Usable,
     );
   });
@@ -79,16 +79,16 @@ describe(issueRefreshToken.name, () => {
   test("券ごとに id を採番し、セッションは渡されたものを引き継ぐこと", () => {
     // 券の id はローテーションのたびに変わるが、セッションは変えない。
     // ここで採番してしまうと、古いタブからのログアウトが空振りする。
-    const issued = issue();
+    const created = create();
 
-    expect(issued.id).toBe(RefreshTokenId.parse(ISSUED_ID));
-    expect(issued.sessionId).toBe(SESSION_ID);
-    expect(issued.userId).toBe(USER_ID);
-    expect(issued.tokenHash).toBe(TOKEN_HASH);
+    expect(created.id).toBe(RefreshTokenId.parse(ISSUED_ID));
+    expect(created.sessionId).toBe(SESSION_ID);
+    expect(created.userId).toBe(USER_ID);
+    expect(created.tokenHash).toBe(TOKEN_HASH);
   });
 
   test("作成日時に採番時の時刻を入れること", () => {
-    expect(issue().createdAt).toStrictEqual(NOW);
+    expect(create().createdAt).toStrictEqual(NOW);
   });
 });
 
@@ -97,11 +97,11 @@ describe(revokeRefreshToken.name, () => {
     const revoked = revokeRefreshToken(
       { clock },
       makeToken(),
-      RevokedReason.Revoked,
+      RevokedReasonEnum.Revoked,
     );
 
     expect(revoked.revokedAt).toStrictEqual(NOW);
-    expect(revoked.revokedReason).toBe(RevokedReason.Revoked);
+    expect(revoked.revokedReason).toBe(RevokedReasonEnum.Revoked);
   });
 
   test("理由をそのまま渡すこと (rotated を revoked に丸めない)", () => {
@@ -110,10 +110,10 @@ describe(revokeRefreshToken.name, () => {
     const rotated = revokeRefreshToken(
       { clock },
       makeToken(),
-      RevokedReason.Rotated,
+      RevokedReasonEnum.Rotated,
     );
 
-    expect(rotated.revokedReason).toBe(RevokedReason.Rotated);
+    expect(rotated.revokedReason).toBe(RevokedReasonEnum.Rotated);
     expect(classifyRefreshToken({ clock }, rotated)).toBe(
       RefreshTokenState.WithinGrace,
     );
@@ -121,7 +121,11 @@ describe(revokeRefreshToken.name, () => {
 
   test("他の項目を書き換えないこと", () => {
     const token = makeToken();
-    const revoked = revokeRefreshToken({ clock }, token, RevokedReason.Revoked);
+    const revoked = revokeRefreshToken(
+      { clock },
+      token,
+      RevokedReasonEnum.Revoked,
+    );
 
     expect(revoked.id).toBe(token.id);
     expect(revoked.sessionId).toBe(token.sessionId);
@@ -135,7 +139,7 @@ describe(revokeRefreshToken.name, () => {
     // rotate は「古い券を失効 + 新しい券を発行」を 1 単位で渡すので、
     // 元を書き換えると呼び出し側が握っている値が変わる。
     const token = makeToken();
-    revokeRefreshToken({ clock }, token, RevokedReason.Revoked);
+    revokeRefreshToken({ clock }, token, RevokedReasonEnum.Revoked);
 
     expect(token.revokedAt).toBeNull();
     expect(token.revokedReason).toBeNull();
@@ -154,7 +158,7 @@ describe(classifyRefreshToken.name, () => {
     const token = makeToken({
       expiresAt: secondsAgo(1),
       revokedAt: secondsAgo(1),
-      revokedReason: RevokedReason.Rotated,
+      revokedReason: RevokedReasonEnum.Rotated,
     });
 
     expect(classifyRefreshToken({ clock }, token)).toBe(
@@ -166,7 +170,7 @@ describe(classifyRefreshToken.name, () => {
     // 境界を内側に倒す。並行更新したタブを締め出さないため。
     const token = makeToken({
       revokedAt: secondsAgo(30),
-      revokedReason: RevokedReason.Rotated,
+      revokedReason: RevokedReasonEnum.Rotated,
     });
 
     expect(classifyRefreshToken({ clock }, token)).toBe(
@@ -177,7 +181,7 @@ describe(classifyRefreshToken.name, () => {
   test("ローテーション済みで 30 秒を超えたら再利用 (盗難のサイン)", () => {
     const token = makeToken({
       revokedAt: secondsAgo(31),
-      revokedReason: RevokedReason.Rotated,
+      revokedReason: RevokedReasonEnum.Rotated,
     });
 
     expect(classifyRefreshToken({ clock }, token)).toBe(
@@ -190,7 +194,7 @@ describe(classifyRefreshToken.name, () => {
     // 30 秒間通ってしまい、切ったはずのセッションが生き返る (実際に踏んだ穴)。
     const token = makeToken({
       revokedAt: secondsAgo(5),
-      revokedReason: RevokedReason.Revoked,
+      revokedReason: RevokedReasonEnum.Revoked,
     });
 
     expect(classifyRefreshToken({ clock }, token)).toBe(

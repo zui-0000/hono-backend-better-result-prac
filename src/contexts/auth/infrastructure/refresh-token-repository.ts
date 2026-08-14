@@ -4,7 +4,7 @@ import { eq, sql } from "drizzle-orm";
 import type { Database } from "~/shared/infrastructure/db/database-client";
 import { handleDbError } from "~/shared/infrastructure/db/error/handle-db-error";
 
-import { RefreshToken, RevokedReason } from "../domain/model/refresh-token";
+import { RefreshToken, RevokedReasonEnum } from "../domain/model/refresh-token";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 import { tRefreshToken } from "./drizzle-schema";
 
@@ -16,15 +16,13 @@ const restoreRefreshToken = (
   return row === undefined ? undefined : RefreshToken.parse(row);
 };
 
-const toVoid = (): void => undefined;
-
 export const createRefreshTokenRepository = (
   db: Database,
 ): RefreshTokenRepository => ({
   create: async (token) =>
     (await Result.tryPromise(() => db.insert(tRefreshToken).values(token)))
       .mapError(handleDbError)
-      .map(toVoid),
+      .map(() => void 0),
 
   findByTokenHash: async (tokenHash) =>
     (
@@ -57,7 +55,7 @@ export const createRefreshTokenRepository = (
       )
     )
       .mapError(handleDbError)
-      .map(toVoid),
+      .map(() => void 0),
 
   // **セッションの行すべてを対象にする。** 既に失効している行も理由を revoked へ
   // 倒さないと、ローテーション済みで猶予期間内の券が生き残り、切ったはずの
@@ -71,11 +69,11 @@ export const createRefreshTokenRepository = (
           .update(tRefreshToken)
           .set({
             revokedAt: sql`coalesce(${tRefreshToken.revokedAt}, ${revokedAt})`,
-            revokedReason: RevokedReason.Revoked,
+            revokedReason: RevokedReasonEnum.Revoked,
           })
           .where(eq(tRefreshToken.sessionId, sessionId)),
       )
     )
       .mapError(handleDbError)
-      .map(toVoid),
+      .map(() => void 0),
 });
