@@ -7,7 +7,7 @@ import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import { createGetUserQuery } from "../../application/get-user-query";
-import { GetUserQueryInput } from "../../application/get-user-query-service";
+import { GetUserQueryInput } from "../../application/get-user-query";
 import type { UserDeps } from "../../user-deps";
 
 type Input = {

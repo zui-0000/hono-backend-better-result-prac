@@ -1,16 +1,28 @@
 import { Result } from "better-result";
+import * as z from "zod";
 
 import { orNotFound } from "~/shared/application/or-not-found";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
 
+import { UserId } from "../domain/model/value-objects/user-id";
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 import type {
-  GetUserQueryInput,
   GetUserQueryOutput,
   GetUserQueryService,
 } from "./get-user-query-service";
+
+/**
+ * getUser クエリの入力。**ポートではなくユースケースの持ち物**なので、
+ * 他のユースケース (XxxCommandInput) と同じくここで宣言する。
+ *
+ * 項目が 1 つでも DTO にするのは、**ユースケースが欲しい形を宣言するのが DTO の役割**
+ * だから。`actor` は認可の主体で、ポートには渡さない (理由は
+ * `get-user-query-service.ts` の GetUserQueryParams)。
+ */
+export const GetUserQueryInput = z.object({ id: UserId, actor: UserId });
+export type GetUserQueryInput = z.infer<typeof GetUserQueryInput>;
 
 /**
  * ユーザーを取得する (CQRS のクエリ)。

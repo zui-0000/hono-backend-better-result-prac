@@ -1,21 +1,15 @@
 import type { Result } from "better-result";
-import * as z from "zod";
 
 import type { RepositoryError } from "~/shared/errors/repository-error";
 
-import { UserId } from "../domain/model/value-objects/user-id";
+import type { UserId } from "../domain/model/value-objects/user-id";
 
 /**
- * getUser クエリの入力。
+ * ポートがデータを引くために必要な値。認可の主体は含まない。
  *
- * 項目が 1 つでも DTO にするのは、**ユースケースが欲しい形を宣言するのが DTO の役割**
- * だから。`actor` は認可の主体で、**照合はユースケースが行いポートには渡さない** —
- * 渡すと認可の失敗が 0 件 → 404 になり「認可の失敗は 403」の規則から外れる。
+ * `actor` を渡さないのは、**照合をユースケースが行う**から — 渡して引く範囲を
+ * 絞ると、認可の失敗が 0 件 → 404 になり「認可の失敗は 403」の規則から外れる。
  */
-export const GetUserQueryInput = z.object({ id: UserId, actor: UserId });
-export type GetUserQueryInput = z.infer<typeof GetUserQueryInput>;
-
-/** ポートがデータを引くために必要な値。認可の主体は含まない。 */
 export type GetUserQueryParams = { readonly id: UserId };
 
 /** 読み取り専用の射影。集約の全項目は写さない。 */
