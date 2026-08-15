@@ -1,6 +1,7 @@
 import { jwtAccessTokenIssuer } from "~/shared/infrastructure/access-token-issuer";
 import { clock } from "~/shared/infrastructure/clock";
 import { readCookieSettings } from "~/shared/infrastructure/cookie-settings";
+import { EnvName } from "~/shared/infrastructure/env-name";
 import { passwordHasher } from "~/shared/infrastructure/password-hasher";
 import {
   type Environment,
@@ -21,7 +22,7 @@ import { uuidGenerator } from "~/shared/infrastructure/uuid-generator";
  */
 export const sharedAdapters = (env: Environment) => ({
   // 鍵の長さ検証はここで走る (短ければ throw する)。
-  accessTokenIssuer: jwtAccessTokenIssuer(requireEnv(env, "JWT_SECRET")),
+  accessTokenIssuer: jwtAccessTokenIssuer(requireEnv(env, EnvName.JwtSecret)),
   cookieSettings: readCookieSettings(env),
   passwordHasher,
   uuidGenerator,

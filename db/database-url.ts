@@ -1,3 +1,5 @@
+import { EnvName } from "~/shared/infrastructure/env-name";
+
 /**
  * 接続情報を環境変数から読む。未設定なら throw する。
  *
@@ -14,10 +16,10 @@
  * 通らないため。どちらも「依存を揃えられないなら動かさない」で揃っている。
  */
 export const databaseUrl = (): string => {
-  const url = process.env.DATABASE_URL;
+  const url = process.env[EnvName.DatabaseUrl];
   if (url === undefined || url === "") {
     throw new Error(
-      "DATABASE_URL が設定されていません。" +
+      `${EnvName.DatabaseUrl} が設定されていません。` +
         ".env を確認してください (未設定のまま進むと既定の接続先へ繋ぎにいきます)。",
     );
   }

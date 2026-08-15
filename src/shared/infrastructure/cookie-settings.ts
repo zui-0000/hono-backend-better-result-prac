@@ -1,5 +1,7 @@
 import type { CookieSettings } from "~/shared/domain/cookie-settings";
 
+import { EnvName } from "./env-name";
+
 /**
  * 環境変数から Cookie の属性を読む。
  *
@@ -9,9 +11,9 @@ import type { CookieSettings } from "~/shared/domain/cookie-settings";
 export const readCookieSettings = (
   env: Readonly<Record<string, string | undefined>>,
 ): CookieSettings => ({
-  secure: env["COOKIE_SECURE"] !== "false",
+  secure: env[EnvName.CookieSecure] !== "false",
   domain:
-    env["COOKIE_DOMAIN"] === undefined || env["COOKIE_DOMAIN"] === ""
+    env[EnvName.CookieDomain] === undefined || env[EnvName.CookieDomain] === ""
       ? undefined
-      : env["COOKIE_DOMAIN"],
+      : env[EnvName.CookieDomain],
 });

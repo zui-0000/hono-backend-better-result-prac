@@ -1,3 +1,5 @@
+import type { EnvName } from "./env-name";
+
 /** 環境変数の入れ物。`process.env` をそのまま渡せる形にしておく (差し替え可能に)。 */
 export type Environment = Readonly<Record<string, string | undefined>>;
 
@@ -11,8 +13,10 @@ export type Environment = Readonly<Record<string, string | undefined>>;
  *
  * 空文字も未設定として扱う。`.env` に `KEY=` と書いた状態を通すと、
  * 上と同じ壊れ方をする。
+ *
+ * 名前を `EnvName` でしか受けないのは、綴りの直書きを**型で止める**ため。
  */
-export const requireEnv = (env: Environment, name: string): string => {
+export const requireEnv = (env: Environment, name: EnvName): string => {
   const value = env[name];
   if (value === undefined || value === "") {
     throw new Error(`${name} が設定されていません。.env を確認してください。`);

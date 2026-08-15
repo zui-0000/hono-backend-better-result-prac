@@ -3,6 +3,7 @@ import type { AuthDeps } from "~/contexts/auth/auth-deps";
 import { userAdapters } from "~/contexts/user/user-adapters";
 import type { UserDeps } from "~/contexts/user/user-deps";
 import { database } from "~/shared/infrastructure/db/database-client";
+import { EnvName } from "~/shared/infrastructure/env-name";
 import {
   type Environment,
   requireEnv,
@@ -33,7 +34,7 @@ import { sharedAdapters } from "~/shared/shared-adapters";
 export type AppDeps = UserDeps & AuthDeps;
 
 export const appDeps = (env: Environment): AppDeps => {
-  const db = database(requireEnv(env, "DATABASE_URL"));
+  const db = database(requireEnv(env, EnvName.DatabaseUrl));
 
   return {
     ...sharedAdapters(env),
