@@ -15,6 +15,11 @@ import { checkMailAddressDuplication } from "../domain/services/check-mail-addre
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 import type { UserRepository } from "../domain/user-repository";
 
+export type UpdateUserCommandDeps = {
+  readonly userRepository: UserRepository;
+  readonly clock: Clock;
+};
+
 export type UpdateUserCommandInput = {
   readonly id: string;
   readonly actor: string;
@@ -42,7 +47,7 @@ export type UpdateUserCommandError =
  * 常に 409 になる**のを防ぐため。
  */
 export const updateUserCommand =
-  (deps: { readonly userRepository: UserRepository; readonly clock: Clock }) =>
+  (deps: UpdateUserCommandDeps) =>
   (
     input: UpdateUserCommandInput,
   ): Promise<Result<void, UpdateUserCommandError>> =>

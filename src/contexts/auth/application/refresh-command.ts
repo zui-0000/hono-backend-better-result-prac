@@ -17,6 +17,14 @@ import {
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
+export type RefreshCommandDeps = {
+  readonly refreshTokenRepository: RefreshTokenRepository;
+  readonly refreshTokenIssuer: RefreshTokenIssuer;
+  readonly accessTokenIssuer: AccessTokenIssuer;
+  readonly uuidGenerator: UuidGenerator;
+  readonly clock: Clock;
+};
+
 export type RefreshCommandInput = {
   readonly refreshToken: string;
 };
@@ -24,14 +32,6 @@ export type RefreshCommandInput = {
 export type RefreshCommandOutput = {
   readonly accessToken: string;
   readonly refreshToken: string;
-};
-
-export type RefreshCommandDeps = {
-  readonly refreshTokenRepository: RefreshTokenRepository;
-  readonly refreshTokenIssuer: RefreshTokenIssuer;
-  readonly accessTokenIssuer: AccessTokenIssuer;
-  readonly uuidGenerator: UuidGenerator;
-  readonly clock: Clock;
 };
 
 export type RefreshCommandError = UnauthorizedError | RepositoryError;

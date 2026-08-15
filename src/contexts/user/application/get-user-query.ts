@@ -8,6 +8,10 @@ import { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error"
 import { UserId } from "../domain/model/value-objects/user-id";
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 
+export type GetUserQueryDeps = {
+  readonly getUserQueryService: GetUserQueryService;
+};
+
 export type GetUserQueryInput = {
   readonly id: string;
   readonly actor: string;
@@ -40,7 +44,7 @@ export type GetUserQueryError =
  * ユーザーを取得する (CQRS のクエリ)。
  */
 export const getUserQuery =
-  (deps: { readonly getUserQueryService: GetUserQueryService }) =>
+  (deps: GetUserQueryDeps) =>
   (
     input: GetUserQueryInput,
   ): Promise<Result<GetUserQueryOutput, GetUserQueryError>> =>

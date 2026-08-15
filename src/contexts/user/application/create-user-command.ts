@@ -16,6 +16,13 @@ import { UserName } from "../domain/model/value-objects/user-name";
 import { checkMailAddressDuplication } from "../domain/services/check-mail-address-duplication";
 import type { UserRepository } from "../domain/user-repository";
 
+export type CreateUserCommandDeps = {
+  readonly userRepository: UserRepository;
+  readonly passwordHasher: PasswordHasher;
+  readonly uuidGenerator: UuidGenerator;
+  readonly clock: Clock;
+};
+
 export type CreateUserCommandInput = {
   readonly name: string;
   readonly mailAddress: string;
@@ -44,12 +51,7 @@ export type CreateUserCommandError =
  * ハッシュ実装が壊れている**ということだから (握り潰すと平文が入りうる)。
  */
 export const createUserCommand =
-  (deps: {
-    readonly userRepository: UserRepository;
-    readonly passwordHasher: PasswordHasher;
-    readonly uuidGenerator: UuidGenerator;
-    readonly clock: Clock;
-  }) =>
+  (deps: CreateUserCommandDeps) =>
   (
     input: CreateUserCommandInput,
   ): Promise<Result<CreateUserCommandOutput, CreateUserCommandError>> =>

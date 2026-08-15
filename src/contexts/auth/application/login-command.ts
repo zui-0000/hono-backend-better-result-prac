@@ -15,6 +15,15 @@ import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
+export type LoginCommandDeps = {
+  readonly verifyCredentialsQueryService: VerifyCredentialsQueryService;
+  readonly refreshTokenRepository: RefreshTokenRepository;
+  readonly refreshTokenIssuer: RefreshTokenIssuer;
+  readonly accessTokenIssuer: AccessTokenIssuer;
+  readonly uuidGenerator: UuidGenerator;
+  readonly clock: Clock;
+};
+
 export type LoginCommandInput = {
   readonly mailAddress: string;
   readonly password: string;
@@ -39,14 +48,7 @@ export type LoginCommandError = UnauthorizedError | RepositoryError;
  * 据え置くと更新のたびにログアウトの単位が変わる。
  */
 export const loginCommand =
-  (deps: {
-    readonly verifyCredentialsQueryService: VerifyCredentialsQueryService;
-    readonly refreshTokenRepository: RefreshTokenRepository;
-    readonly refreshTokenIssuer: RefreshTokenIssuer;
-    readonly accessTokenIssuer: AccessTokenIssuer;
-    readonly uuidGenerator: UuidGenerator;
-    readonly clock: Clock;
-  }) =>
+  (deps: LoginCommandDeps) =>
   (
     input: LoginCommandInput,
   ): Promise<Result<LoginCommandOutput, LoginCommandError>> =>

@@ -10,6 +10,11 @@ import { UserId } from "../domain/model/value-objects/user-id";
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 import type { UserRepository } from "../domain/user-repository";
 
+export type DeleteUserCommandDeps = {
+  readonly userRepository: UserRepository;
+  readonly sessionRevoker: SessionRevoker;
+};
+
 export type DeleteUserCommandInput = {
   readonly id: string;
   readonly actor: string;
@@ -40,10 +45,7 @@ export type DeleteUserCommandError =
  * (auth/infrastructure/drizzle-schema.ts に理由がある)。**塞ぐのはここ。**
  */
 export const deleteUserCommand =
-  (deps: {
-    readonly userRepository: UserRepository;
-    readonly sessionRevoker: SessionRevoker;
-  }) =>
+  (deps: DeleteUserCommandDeps) =>
   (
     input: DeleteUserCommandInput,
   ): Promise<Result<void, DeleteUserCommandError>> =>

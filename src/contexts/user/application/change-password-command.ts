@@ -24,6 +24,13 @@ import type { UserRepository } from "../domain/user-repository";
  * (`logout-command.ts` と同じ経路)。ここで brand に落としておくと、形式が壊れた
  * 値は decodeInput が 400 で弾き、内側に素の文字列が流れ込まない。
  */
+export type ChangePasswordCommandDeps = {
+  readonly userRepository: UserRepository;
+  readonly passwordHasher: PasswordHasher;
+  readonly sessionRevoker: SessionRevoker;
+  readonly clock: Clock;
+};
+
 export type ChangePasswordCommandInput = {
   readonly id: string;
   readonly actor: string;
@@ -61,12 +68,7 @@ export type ChangePasswordCommandError =
  * この順なら失敗しても他端末がログアウトされるだけで、パスワードは元のまま入り直せる。
  */
 export const changePasswordCommand =
-  (deps: {
-    readonly userRepository: UserRepository;
-    readonly passwordHasher: PasswordHasher;
-    readonly sessionRevoker: SessionRevoker;
-    readonly clock: Clock;
-  }) =>
+  (deps: ChangePasswordCommandDeps) =>
   (
     input: ChangePasswordCommandInput,
   ): Promise<Result<void, ChangePasswordCommandError>> =>

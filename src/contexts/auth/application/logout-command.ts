@@ -7,6 +7,11 @@ import type { RepositoryError } from "~/shared/errors/repository-error";
 import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
+export type LogoutCommandDeps = {
+  readonly refreshTokenRepository: RefreshTokenRepository;
+  readonly clock: Clock;
+};
+
 export type LogoutCommandInput = { readonly sessionId: string };
 
 const LogoutCommandValues = z.object({ sessionId: SessionId });
@@ -20,10 +25,7 @@ export type LogoutCommandError = RepositoryError;
  * 失効時刻は Clock から取る (DB の now() に任せない)。
  */
 export const logoutCommand =
-  (deps: {
-    readonly refreshTokenRepository: RefreshTokenRepository;
-    readonly clock: Clock;
-  }) =>
+  (deps: LogoutCommandDeps) =>
   (input: LogoutCommandInput): Promise<Result<void, LogoutCommandError>> =>
     Result.gen(async function* () {
       const { sessionId } = LogoutCommandValues.parse(input);
