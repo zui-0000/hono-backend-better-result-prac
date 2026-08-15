@@ -4,7 +4,7 @@ import { makeDeps } from "~/__mocks__/app-deps";
 import { headers, REQUEST_ID } from "~/__mocks__/data";
 import { createApp } from "~/app";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
-import { ErrorMessage } from "~/shared/presentation/constants/error-message";
+import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpHeader } from "~/shared/presentation/constants/http-header";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
@@ -17,8 +17,9 @@ describe(handleNotFound.name, () => {
 
     expect(response.status).toBe(HttpStatus.NotFound);
     expect(await response.json()).toStrictEqual({
-      errorCode: ErrorCode.ResourceNotFound,
-      message: ErrorMessage.ResourceNotFound,
+      status: HttpStatus.NotFound,
+      code: ErrorCode.ResourceNotFound,
+      title: ErrorTitle.ResourceNotFound,
     });
   });
 

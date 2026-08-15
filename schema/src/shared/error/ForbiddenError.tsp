@@ -1,6 +1,6 @@
 import "../model/index.tsp";
 import "./ErrorCode.tsp";
-import "./ErrorMessage.tsp";
+import "./ErrorTitle.tsp";
 
 // 認可の失敗は、**対象が存在するかどうかに関わらず 403** で返す。
 //
@@ -17,8 +17,13 @@ import "./ErrorMessage.tsp";
 @summary("ForbiddenError")
 @doc("操作する権限が無い (汎用)")
 @error
-@example(#{ errorCode: "4030", message: "この操作を行う権限がありません" })
+@example(#{
+  status: 403,
+  code: "4030",
+  title: "この操作を行う権限がありません",
+})
 model ForbiddenError {
-  errorCode: ErrorCode;
-  message: ErrorMessage;
+  status: 403;
+  code: ErrorCode;
+  title: ErrorTitle;
 }

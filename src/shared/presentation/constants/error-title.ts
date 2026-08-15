@@ -1,8 +1,8 @@
 /**
- * 共通基盤が返すエラーメッセージ。
+ * 共通基盤が返すエラーの表題 (応答の `title`)。
  */
-export const ErrorMessage = {
-  /** 400 リクエストが契約を満たさない (違反フィールドは details に入る) */
+export const ErrorTitle = {
+  /** 400 リクエストが契約を満たさない (違反フィールドは errors に入る) */
   BadRequest: "リクエスト内容が不正です",
   /** 400 リクエストボディが JSON として読めない */
   MalformedJson: "リクエストボディを JSON として解釈できません",
@@ -22,4 +22,4 @@ export const ErrorMessage = {
   InternalServerError: "サーバーで予期せぬエラーが発生しました",
 } as const;
 
-export type ErrorMessage = (typeof ErrorMessage)[keyof typeof ErrorMessage];
+export type ErrorTitle = (typeof ErrorTitle)[keyof typeof ErrorTitle];

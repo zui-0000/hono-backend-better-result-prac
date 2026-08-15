@@ -410,23 +410,29 @@ components:
     BadRequestError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 400
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
-        details:
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
+        errors:
           type: array
           items:
-            $ref: '#/components/schemas/ErrorDetail'
+            $ref: '#/components/schemas/ErrorItem'
       description: リクエスト内容が不正 (汎用)
       title: BadRequestError
       examples:
-        - errorCode: '4000'
-          message: リクエスト内容が不正です
-          details:
+        - status: 400
+          code: '4000'
+          title: リクエスト内容が不正です
+          errors:
             - field: mailAddress
               message: メールアドレスの形式が不正です
     ChangePasswordRequest:
@@ -464,11 +470,11 @@ components:
       title: CreateUserResponse
     ErrorCode:
       type: string
-      description: エラーコード
+      description: エラーコード。`<HTTP ステータス><連番>` の 4 桁
       title: ErrorCode
       examples:
         - '4000'
-    ErrorDetail:
+    ErrorItem:
       type: object
       required:
         - field
@@ -478,29 +484,35 @@ components:
           type: string
         message:
           type: string
-      description: バリデーションエラーの詳細
-      title: ErrorDetail
-    ErrorMessage:
+      description: エラーの内訳 (フィールド単位の指摘)
+      title: ErrorItem
+    ErrorTitle:
       type: string
-      description: エラーメッセージ
-      title: ErrorMessage
+      description: エラーの表題 (何が起きたかを 1 行で表す)
+      title: ErrorTitle
       examples:
         - リクエスト内容が不正です
     ForbiddenError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 403
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
       description: 操作する権限が無い (汎用)
       title: ForbiddenError
       examples:
-        - errorCode: '4030'
-          message: この操作を行う権限がありません
+        - status: 403
+          code: '4030'
+          title: この操作を行う権限がありません
     GetUserResponse:
       type: object
       required:
@@ -515,18 +527,24 @@ components:
     InternalServerError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 500
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
       description: サーバー内部で予期せぬエラーが発生した (汎用)
       title: InternalServerError
       examples:
-        - errorCode: '5000'
-          message: サーバーで予期せぬエラーが発生しました
+        - status: 500
+          code: '5000'
+          title: サーバーで予期せぬエラーが発生しました
     LoginRequest:
       type: object
       required:
@@ -557,18 +575,24 @@ components:
     MailAddressDuplicationError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 409
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
       description: メールアドレスが既に使用されている
       title: MailAddressDuplicationError
       examples:
-        - errorCode: '4091'
-          message: メールアドレスが既に使用されています
+        - status: 409
+          code: '4091'
+          title: メールアドレスが既に使用されています
     Password:
       type: string
       minLength: 12
@@ -581,18 +605,24 @@ components:
     PasswordMismatchError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 401
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
       description: 現在のパスワードが一致しない
       title: PasswordMismatchError
       examples:
-        - errorCode: '4011'
-          message: 現在のパスワードが正しくありません
+        - status: 401
+          code: '4011'
+          title: 現在のパスワードが正しくありません
     RefreshResponse:
       type: object
       required:
@@ -620,33 +650,45 @@ components:
     ResourceNotFoundError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 404
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
       description: リソースが存在しない (汎用)
       title: ResourceNotFoundError
       examples:
-        - errorCode: '4040'
-          message: 指定されたリソースは存在しません
+        - status: 404
+          code: '4040'
+          title: 指定されたリソースは存在しません
     UnauthorizedError:
       type: object
       required:
-        - errorCode
-        - message
+        - status
+        - code
+        - title
       properties:
-        errorCode:
+        status:
+          type: number
+          enum:
+            - 401
+        code:
           $ref: '#/components/schemas/ErrorCode'
-        message:
-          $ref: '#/components/schemas/ErrorMessage'
+        title:
+          $ref: '#/components/schemas/ErrorTitle'
       description: 認証情報が不正 (汎用)
       title: UnauthorizedError
       examples:
-        - errorCode: '4010'
-          message: 認証情報が正しくありません
+        - status: 401
+          code: '4010'
+          title: 認証情報が正しくありません
     UpdateUserRequest:
       type: object
       required:

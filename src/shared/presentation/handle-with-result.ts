@@ -49,7 +49,7 @@ type Spec<Req extends RequestSchemas, Auth extends true | undefined> = {
  *   5. 失敗と throw を畳む
  *
  * **認証が先。** 通っていない相手には契約の話を一切しない
- * (400 の details はフィールド名と制約をそのまま返すため)。
+ * (400 の errors はフィールド名と制約をそのまま返すため)。
  *
  * **ここが要求する依存は `accessTokenIssuer` だけ。** ユースケース側の依存は
  * routes の時点で部分適用済みなので、この層を通らない。

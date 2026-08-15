@@ -59,7 +59,7 @@ describe(createChangePasswordController.name, () => {
   test("現在のパスワードが違えば 4011 を返し、永続化しないこと", async () => {
     // **トークンを盗まれてもパスワードは変えられない**という守り。
     //
-    // status ではなく errorCode を見る。汎用 401 (4010) と同じステータスなので、
+    // status ではなく code を見る。汎用 401 (4010) と同じステータスなので、
     // ここを見ないと打ち間違いと区別できているか確かめられない。
     const updated: User[] = [];
     const deps = makeDeps({
@@ -76,7 +76,7 @@ describe(createChangePasswordController.name, () => {
     const response = await put(deps);
 
     expect(response.status).toBe(HttpStatus.Unauthorized);
-    expect(((await response.json()) as { errorCode: string }).errorCode).toBe(
+    expect(((await response.json()) as { code: string }).code).toBe(
       ErrorCode.PasswordMismatch,
     );
     expect(updated).toStrictEqual([]);

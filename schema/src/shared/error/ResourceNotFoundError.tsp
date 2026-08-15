@@ -1,12 +1,17 @@
 import "../model/index.tsp";
 import "./ErrorCode.tsp";
-import "./ErrorMessage.tsp";
+import "./ErrorTitle.tsp";
 
 @summary("ResourceNotFoundError")
 @doc("リソースが存在しない (汎用)")
 @error
-@example(#{ errorCode: "4040", message: "指定されたリソースは存在しません" })
+@example(#{
+  status: 404,
+  code: "4040",
+  title: "指定されたリソースは存在しません",
+})
 model ResourceNotFoundError {
-  errorCode: ErrorCode;
-  message: ErrorMessage;
+  status: 404;
+  code: ErrorCode;
+  title: ErrorTitle;
 }

@@ -88,7 +88,7 @@ describe(createLoginController.name, () => {
 
     expect(response.status).toBe(HttpStatus.Unauthorized);
     expect(setCookieOf(response)).toBeNull();
-    expect(((await response.json()) as { errorCode: string }).errorCode).toBe(
+    expect(((await response.json()) as { code: string }).code).toBe(
       ErrorCode.Unauthorized,
     );
   });

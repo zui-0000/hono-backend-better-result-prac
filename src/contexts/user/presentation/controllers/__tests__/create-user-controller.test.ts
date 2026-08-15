@@ -16,7 +16,7 @@ import type { User } from "~/contexts/user/domain/model/user";
 import { UserHashedPassword } from "~/contexts/user/domain/model/value-objects/user-hashed-password";
 import { MailAddress } from "~/shared/domain/model/value-objects/mail-address";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
-import { ErrorMessage } from "~/shared/presentation/constants/error-message";
+import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
 import { createCreateUserController } from "../create-user-controller";
@@ -84,8 +84,9 @@ describe(createCreateUserController.name, () => {
 
       expect(response.status).toBe(HttpStatus.Conflict);
       expect(await response.json()).toStrictEqual({
-        errorCode: ErrorCode.MailAddressDuplication,
-        message: ErrorMessage.MailAddressDuplication,
+        status: HttpStatus.Conflict,
+        code: ErrorCode.MailAddressDuplication,
+        title: ErrorTitle.MailAddressDuplication,
       });
       // 重複が先に弾くので、ハッシュ計算も保存も走らない。
       expect(created).toStrictEqual([]);
@@ -104,9 +105,9 @@ describe(createCreateUserController.name, () => {
       expect(
         (
           (await response.json()) as {
-            details: { field: string; message: string }[];
+            errors: { field: string; message: string }[];
           }
-        ).details,
+        ).errors,
       ).toStrictEqual([{ field: "-", message: expect.any(String) }]);
     });
 
@@ -119,11 +120,11 @@ describe(createCreateUserController.name, () => {
 
       expect(response.status).toBe(HttpStatus.BadRequest);
       const body = (await response.json()) as {
-        errorCode: string;
-        details: { field: string }[];
+        code: string;
+        errors: { field: string }[];
       };
-      expect(body.errorCode).toBe(ErrorCode.BadRequest);
-      expect(body.details.map((d) => d.field).sort()).toStrictEqual([
+      expect(body.code).toBe(ErrorCode.BadRequest);
+      expect(body.errors.map((d) => d.field).sort()).toStrictEqual([
         "mailAddress",
         "name",
         "password",

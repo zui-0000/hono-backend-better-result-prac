@@ -1,6 +1,6 @@
 import "./ErrorCode.tsp";
-import "./ErrorMessage.tsp";
-import "./ErrorDetail.tsp";
+import "./ErrorTitle.tsp";
+import "./ErrorItem.tsp";
 import "./BadRequestError.tsp";
 import "./ConflictError.tsp";
 import "./ForbiddenError.tsp";

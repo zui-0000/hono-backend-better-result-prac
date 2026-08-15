@@ -24,7 +24,7 @@ import {
 } from "~/contexts/auth/domain/model/refresh-token";
 import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/refresh-token-hash";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
-import { ErrorMessage } from "~/shared/presentation/constants/error-message";
+import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
 import { createRefreshController } from "../refresh-controller";
@@ -212,8 +212,9 @@ describe(createRefreshController.name, () => {
       expect(bodies[0]).toStrictEqual(bodies[1]);
       expect(bodies[1]).toStrictEqual(bodies[2]);
       expect(bodies[0]).toStrictEqual({
-        errorCode: ErrorCode.Unauthorized,
-        message: ErrorMessage.Unauthorized,
+        status: HttpStatus.Unauthorized,
+        code: ErrorCode.Unauthorized,
+        title: ErrorTitle.Unauthorized,
       });
     });
 
@@ -222,10 +223,11 @@ describe(createRefreshController.name, () => {
 
       expect(response.status).toBe(HttpStatus.BadRequest);
       expect(await response.json()).toStrictEqual({
-        errorCode: ErrorCode.BadRequest,
-        message: ErrorMessage.BadRequest,
+        status: HttpStatus.BadRequest,
+        code: ErrorCode.BadRequest,
+        title: ErrorTitle.BadRequest,
         // フィールド名は Cookie の名前そのもの (ボディの項目名ではない)。
-        details: [{ field: REFRESH_COOKIE_NAME, message: expect.any(String) }],
+        errors: [{ field: REFRESH_COOKIE_NAME, message: expect.any(String) }],
       });
     });
 

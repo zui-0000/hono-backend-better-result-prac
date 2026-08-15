@@ -1,5 +1,5 @@
 /**
- * この API が返す HTTP ステータスコード。`errorCode` 体系と対になる。
+ * この API が返す HTTP ステータスコード。`code` 体系と対になる。
  *
  * `as const` はリテラル型を保つため。`NoContent` が `number` に広がると、
  * 本文の有無で分かれる `SuccessResponse` の判別可能ユニオンが機能しなくなる。

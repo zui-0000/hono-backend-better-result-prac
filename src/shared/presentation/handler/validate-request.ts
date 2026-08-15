@@ -5,7 +5,7 @@ import type * as z from "zod";
 
 import { BadRequestError } from "~/shared/errors/bad-request-error";
 
-import { ErrorMessage } from "../constants/error-message";
+import { ErrorTitle } from "../constants/error-title";
 import { HttpHeader } from "../constants/http-header";
 import { decodeInput } from "../decode-input";
 import type { AuthenticatedInput } from "./verify-bearer";
@@ -30,9 +30,7 @@ const validateJson = async <S extends z.ZodType>(
   try {
     return decodeInput(schema)(await c.req.json());
   } catch {
-    return Result.err(
-      new BadRequestError({ message: ErrorMessage.MalformedJson }),
-    );
+    return Result.err(new BadRequestError({ title: ErrorTitle.MalformedJson }));
   }
 };
 

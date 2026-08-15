@@ -4,7 +4,7 @@ import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, headers, makeUser, REQUEST_ID } from "~/__mocks__/data";
 import { createApp } from "~/app";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
-import { ErrorMessage } from "~/shared/presentation/constants/error-message";
+import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpHeader } from "~/shared/presentation/constants/http-header";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
@@ -28,8 +28,9 @@ describe(handleWithResult.name, () => {
 
     expect(response.status).toBe(HttpStatus.InternalServerError);
     expect(await response.json()).toStrictEqual({
-      errorCode: ErrorCode.InternalServerError,
-      message: ErrorMessage.InternalServerError,
+      status: HttpStatus.InternalServerError,
+      code: ErrorCode.InternalServerError,
+      title: ErrorTitle.InternalServerError,
     });
     expect(response.headers.get(HttpHeader.RequestId)).toBe(REQUEST_ID);
   });

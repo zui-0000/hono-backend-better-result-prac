@@ -47,13 +47,13 @@ describe(verifyBearer.name, () => {
 
     expect(response.status).toBe(HttpStatus.Unauthorized);
     // 期限切れ・署名不正・形式不正を書き分けない (攻撃側に手掛かりを与えない)。
-    expect(((await response.json()) as { errorCode: string }).errorCode).toBe(
+    expect(((await response.json()) as { code: string }).code).toBe(
       ErrorCode.Unauthorized,
     );
   });
 
   test("認証は契約検証より先に走ること", async () => {
-    // 通っていない相手には契約の話を一切しない (400 の details は
+    // 通っていない相手には契約の話を一切しない (400 の errors は
     // フィールド名と制約をそのまま返すため)。
     const response = await createApp(makeDeps()).request("/users/not-a-uuid", {
       headers: { [HttpHeader.RequestId]: REQUEST_ID },

@@ -55,7 +55,7 @@ describe(createGetUserController.name, () => {
     const response = await get(makeDeps());
 
     expect(response.status).toBe(HttpStatus.NotFound);
-    expect(((await response.json()) as { errorCode: string }).errorCode).toBe(
+    expect(((await response.json()) as { code: string }).code).toBe(
       ErrorCode.ResourceNotFound,
     );
   });

@@ -80,7 +80,7 @@ describe(createUpdateUserController.name, () => {
     const response = await put(deps);
 
     expect(response.status).toBe(HttpStatus.Conflict);
-    expect(((await response.json()) as { errorCode: string }).errorCode).toBe(
+    expect(((await response.json()) as { code: string }).code).toBe(
       ErrorCode.MailAddressDuplication,
     );
   });

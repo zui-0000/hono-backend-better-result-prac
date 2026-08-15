@@ -1,6 +1,6 @@
 import "../model/index.tsp";
 import "./ErrorCode.tsp";
-import "./ErrorMessage.tsp";
+import "./ErrorTitle.tsp";
 
 // パスワード変更でのみ返す。汎用の 401 (UnauthorizedError) と分けておくと、
 // クライアントが打ち間違いとして扱える (トークンの更新やログアウトへ倒さない)。
@@ -11,8 +11,13 @@ import "./ErrorMessage.tsp";
 @summary("PasswordMismatchError")
 @doc("現在のパスワードが一致しない")
 @error
-@example(#{ errorCode: "4011", message: "現在のパスワードが正しくありません" })
+@example(#{
+  status: 401,
+  code: "4011",
+  title: "現在のパスワードが正しくありません",
+})
 model PasswordMismatchError {
-  errorCode: ErrorCode;
-  message: ErrorMessage;
+  status: 401;
+  code: ErrorCode;
+  title: ErrorTitle;
 }

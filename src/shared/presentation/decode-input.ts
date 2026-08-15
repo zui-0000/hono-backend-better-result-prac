@@ -2,12 +2,12 @@ import { Result } from "better-result";
 import type * as z from "zod";
 
 import { BadRequestError } from "~/shared/errors/bad-request-error";
-import type { ErrorDetail } from "~/shared/errors/error-detail";
+import type { ErrorItem } from "~/shared/errors/error-item";
 
-import { ErrorMessage } from "./constants/error-message";
+import { ErrorTitle } from "./constants/error-title";
 
 /**
- * zod の失敗を、契約の `details`（フィールド単位の指摘）に写す。
+ * zod の失敗を、契約の `errors`（フィールド単位の指摘）に写す。
  *
  * `path` は配列なので `.` で繋ぐ (ネストした項目は "meta.respondedAt" になる)。
  * **空のときは "-"** — ボディ全体が不正な場合 (オブジェクトですらない等) に
@@ -16,7 +16,7 @@ import { ErrorMessage } from "./constants/error-message";
  * 違反は最初の 1 件で止めず全部集める。1 回のやり取りで直しきれるようにするため。
  * (zod の `safeParse` は既定でそう振る舞う)
  */
-const toErrorDetails = (error: z.ZodError): readonly ErrorDetail[] =>
+const toErrorItems = (error: z.ZodError): readonly ErrorItem[] =>
   error.issues.map((issue) => ({
     field: issue.path.length === 0 ? "-" : issue.path.join("."),
     message: issue.message,
@@ -37,8 +37,8 @@ export const decodeInput =
       ? Result.ok(parsed.data)
       : Result.err(
           new BadRequestError({
-            message: ErrorMessage.BadRequest,
-            details: toErrorDetails(parsed.error),
+            title: ErrorTitle.BadRequest,
+            errors: toErrorItems(parsed.error),
           }),
         );
   };
