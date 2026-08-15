@@ -22,12 +22,14 @@ export const verifyCredentials = (
     readonly userRepository: Pick<UserRepository, "findByMailAddress">;
     readonly passwordHasher: PasswordHasher;
   },
-  mailAddress: MailAddress,
-  password: Password,
+  params: {
+    readonly mailAddress: MailAddress;
+    readonly password: Password;
+  },
 ): Promise<Result<UserId | undefined, RepositoryError>> =>
   Result.gen(async function* () {
     const user = yield* Result.await(
-      deps.userRepository.findByMailAddress(mailAddress),
+      deps.userRepository.findByMailAddress(params.mailAddress),
     );
     // 401 にせず undefined で返すのは、**401 にするかが呼び出し側の方針**だから。
     // ここは `public/` 越しに auth へ渡る面で、ドメインが答えるのは「この人は誰か」だけ。
@@ -39,6 +41,6 @@ export const verifyCredentials = (
     // **照合の失敗は握り潰して undefined に畳む。** ここを `yield*` で短絡させると
     // 「居ない」(undefined) と「合わない」(失敗) が呼び出し側から見分けられてしまう。
     // E に PasswordMismatchError が現れないのはそのため。
-    const verified = await verifyUserPassword(deps, user, password);
+    const verified = await verifyUserPassword(deps, user, params.password);
     return Result.ok(verified.isOk() ? user.id : undefined);
   });

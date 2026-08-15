@@ -1,8 +1,11 @@
 import { Result } from "better-result";
+import * as z from "zod";
 
 import type { VerifyCredentialsQueryService } from "~/contexts/user/public/verify-credentials-query-service";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { Clock } from "~/shared/domain/clock";
+import { MailAddress } from "~/shared/domain/model/value-objects/mail-address";
+import { Password } from "~/shared/domain/model/value-objects/password";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
@@ -16,6 +19,11 @@ export type LoginCommandInput = {
   readonly mailAddress: string;
   readonly password: string;
 };
+
+const LoginCommandValues = z.object({
+  mailAddress: MailAddress,
+  password: Password,
+});
 
 export type LoginCommandOutput = {
   readonly accessToken: string;
@@ -43,11 +51,13 @@ export const loginCommand =
     input: LoginCommandInput,
   ): Promise<Result<LoginCommandOutput, LoginCommandError>> =>
     Result.gen(async function* () {
+      const { mailAddress, password } = LoginCommandValues.parse(input);
+
       // 「居ない」と「合わない」は user 側 (verifyCredentials) で既に undefined へ
       // 畳まれている。**ここに届く時点で分岐する材料が無い**ので、畳まれたまま 401 へ。
       // 書き分けられるとしたら畳む側で、そこは verify-credentials.test.ts が見張る。
       const userId = yield* Result.await(
-        deps.verifyCredentialsQueryService.execute(input),
+        deps.verifyCredentialsQueryService.execute({ mailAddress, password }),
       );
       if (userId === undefined) {
         return Result.err(new UnauthorizedError());

@@ -1,5 +1,7 @@
 import type { Result } from "better-result";
 
+import type { MailAddress } from "~/shared/domain/model/value-objects/mail-address";
+import type { Password } from "~/shared/domain/model/value-objects/password";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 
 import type { UserId } from "../domain/model/value-objects/user-id";
@@ -17,12 +19,14 @@ import type { UserId } from "../domain/model/value-objects/user-id";
  * **失敗を区別しない。**「利用者が居ない」も「パスワードが違う」も `undefined`。
  * 書き分けると総当たりで登録の有無を判定できてしまう (アカウント列挙)。
  *
- * 入力は素の string、返す id は branded な `UserId`。入力は「照合してもらう材料」で
- * 変換は所有者 (user) の仕事、id は auth 側で RefreshToken 集約の項目になるため。
+ * 入出力とも値オブジェクトで受け渡す。`MailAddress` / `Password` は `shared/domain` の
+ * **共有の語彙**なので、auth が持っても user の内部を知ることにはならない。
+ * 素の string から値オブジェクトへの変換は、他のユースケースと同じく
+ * **呼ぶ側 (loginCommand) の冒頭**で行う — 落ちたら契約とのズレ = バグなので throw させる。
  */
 export type VerifyCredentialsQueryService = {
   readonly execute: (params: {
-    readonly mailAddress: string;
-    readonly password: string;
+    readonly mailAddress: MailAddress;
+    readonly password: Password;
   }) => Promise<Result<UserId | undefined, RepositoryError>>;
 };

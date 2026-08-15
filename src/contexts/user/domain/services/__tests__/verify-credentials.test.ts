@@ -47,7 +47,10 @@ const deps = (
 
 describe(verifyCredentials.name, () => {
   test("一致すればその利用者の id を返すこと", async () => {
-    const result = await verifyCredentials(deps(user, true), MAIL, PLAIN);
+    const result = await verifyCredentials(deps(user, true), {
+      mailAddress: MAIL,
+      password: PLAIN,
+    });
 
     expect(result.isOk() ? result.value : null).toBe(ID);
   });
@@ -55,16 +58,14 @@ describe(verifyCredentials.name, () => {
   test("**「居ない」と「合わない」がどちらも undefined になること**", async () => {
     // 書き分けると、総当たりでメールアドレスの登録有無を判定できてしまう
     // (アカウント列挙)。ここで畳んでいることが防御の実体。
-    const notFound = await verifyCredentials(
-      deps(undefined, true),
-      MAIL,
-      PLAIN,
-    );
-    const wrongPassword = await verifyCredentials(
-      deps(user, false),
-      MAIL,
-      PLAIN,
-    );
+    const notFound = await verifyCredentials(deps(undefined, true), {
+      mailAddress: MAIL,
+      password: PLAIN,
+    });
+    const wrongPassword = await verifyCredentials(deps(user, false), {
+      mailAddress: MAIL,
+      password: PLAIN,
+    });
 
     expect(notFound.isOk() ? notFound.value : "err").toBeUndefined();
     expect(wrongPassword.isOk() ? wrongPassword.value : "err").toBeUndefined();
@@ -73,7 +74,10 @@ describe(verifyCredentials.name, () => {
   test("**パスワードが違うことを失敗にしないこと**", async () => {
     // 401 へ翻訳するのは呼び出し側の責務。ここで失敗にすると、
     // 「居ない」と「合わない」が型のうえで分かれてしまう。
-    const result = await verifyCredentials(deps(user, false), MAIL, PLAIN);
+    const result = await verifyCredentials(deps(user, false), {
+      mailAddress: MAIL,
+      password: PLAIN,
+    });
 
     expect(result.isOk()).toBe(true);
   });
@@ -93,7 +97,7 @@ describe(verifyCredentials.name, () => {
       },
     };
 
-    await verifyCredentials(d, MAIL, PLAIN);
+    await verifyCredentials(d, { mailAddress: MAIL, password: PLAIN });
 
     // 引き当てられなければハッシュ計算 (~100ms) を払う理由が無い。
     expect(verified).toBe(0);
@@ -113,7 +117,10 @@ describe(verifyCredentials.name, () => {
       },
     };
 
-    const result = await verifyCredentials(d, MAIL, PLAIN);
+    const result = await verifyCredentials(d, {
+      mailAddress: MAIL,
+      password: PLAIN,
+    });
 
     // DB が落ちているのを「照合できなかった = 401」に畳むと、原因が消える。
     expect(result.isOk()).toBe(false);
