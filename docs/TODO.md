@@ -176,6 +176,56 @@ controller の命名を並べて見るときに、合成ルートの局所名も
 
 ---
 
+## `handleWithResult` だけ deps が 2 番目にある
+
+依存の渡し方は「**配線点なら先に食わせる**」で揃っている
+（[`CLAUDE.md`](../CLAUDE.md) の「依存の渡し方」）。**この 1 本だけ順序が逆。**
+
+### いまの状態
+
+```ts
+export const handleWithResult =
+  <Req, Auth>(spec: Spec<Req, Auth>) =>                      // ← spec が先
+  (deps: { readonly accessTokenIssuer: AccessTokenIssuer }) => // ← deps が後
+  async (c) => { ... };
+```
+
+呼び出し側はこうなる。
+
+```ts
+routes.post(
+  "/login",
+  handleWithResult({
+    request: { header: LoginHeader, body: LoginBody },
+    controller: loginController(deps),
+  })(deps), // ← 複数行のリテラルの末尾にぶら下がる
+);
+```
+
+他はすべて `xxx(deps)(...)` の形（`loginCommand(deps)(input)` /
+`getUserController(deps)` / `userRoutes(deps)` / `app(deps)`）。
+**ここだけ読む順が違う**うえ、長いリテラルの後ろに付くので見落としやすい。
+
+### なぜ後回しにしたか
+
+**動作は正しく、型も通っている。** 読みやすさだけの話なので、経路の宣言
+（`*-routes.ts`）をまとめて見るときに決めるほうが早い。呼び出しは
+auth 3 本 + user 5 本の計 8 箇所で、機械的に直せる。
+
+### 検討した案
+
+|       | 案                                                       | 備考                             |
+| ----- | -------------------------------------------------------- | -------------------------------- |
+| **A** | `handleWithResult(deps)(spec)` に入れ替える              | 他と揃う。8 箇所の呼び出しを直す |
+| B     | 引数 1 つに畳む（`handleWithResult({ ...spec, deps })`） | 経路の宣言に deps が混ざる       |
+| C     | 現状のまま                                               | 順序が揃わない理由は説明できない |
+
+### 着手の引き金
+
+**`contexts/*/presentation` のレビュー。** `*-routes.ts` を一望するときに決める。
+
+---
+
 ## 退会済み利用者の券が行として残る
 
 `t_refresh_token` は `t_user` に **FK を張っていない**（理由は
