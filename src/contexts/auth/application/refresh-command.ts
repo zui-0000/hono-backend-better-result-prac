@@ -49,11 +49,11 @@ export type RefreshCommandError = UnauthorizedError | RepositoryError;
  * **セッションは据え置く。** 採番し直すと更新のたびにログアウトの単位が変わり、
  * 古いタブからのログアウトが効かなくなる。
  */
-const rotate = async (
+const rotate = (
   deps: RefreshCommandDeps,
   current: RefreshToken,
 ): Promise<Result<RefreshCommandOutput, RepositoryError>> =>
-  await Result.gen(async function* () {
+  Result.gen(async function* () {
     const generated = await deps.refreshTokenIssuer.issue();
 
     const issued = createRefreshToken(deps, {
@@ -139,10 +139,10 @@ const HANDLER_BY_REFRESH_TOKEN_STATE: Record<
  */
 export const refreshCommand =
   (deps: RefreshCommandDeps) =>
-  async (
+  (
     input: RefreshCommandInput,
   ): Promise<Result<RefreshCommandOutput, RefreshCommandError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       // 券そのものは保存していないので、ハッシュに直してから引く。
       const presentedHash = await deps.refreshTokenIssuer.hash(
         input.refreshToken,

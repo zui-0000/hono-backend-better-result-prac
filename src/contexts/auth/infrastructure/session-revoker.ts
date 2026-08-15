@@ -13,8 +13,8 @@ export const sessionRevoker = (deps: {
   readonly refreshTokenRepository: RefreshTokenRepository;
   readonly clock: Clock;
 }): SessionRevoker => ({
-  revokeUserSessions: async ({ userId, excluding }) =>
-    await deps.refreshTokenRepository.revokeUserSessions({
+  revokeUserSessions: ({ userId, excluding }) =>
+    deps.refreshTokenRepository.revokeUserSessions({
       userId,
       revokedAt: deps.clock.now(),
       excluding,

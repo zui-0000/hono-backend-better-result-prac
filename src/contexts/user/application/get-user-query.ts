@@ -37,18 +37,18 @@ export type GetUserQueryError =
  */
 export const getUserQuery =
   (deps: { readonly getUserQueryService: GetUserQueryService }) =>
-  async (
+  (
     input: GetUserQueryInput,
   ): Promise<Result<GetUserQueryOutput, GetUserQueryError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 
-      const view = yield* Result.await(
+      const user = yield* Result.await(
         deps.getUserQueryService.execute({ id: input.id }),
       );
-      if (view === undefined) {
+      if (user === undefined) {
         return Result.err(new ResourceNotFoundError());
       }
 
-      return Result.ok(view);
+      return Result.ok(user);
     });

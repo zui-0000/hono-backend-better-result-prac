@@ -21,8 +21,8 @@ type Input = {
 /** ユーザーを更新する (PUT /users/{id})。 */
 export const updateUserController = (deps: UserDeps) => {
   const command = updateUserCommand(deps);
-  return async ({ auth, body, params }: Input) =>
-    await Result.gen(async function* () {
+  return ({ auth, body, params }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(UpdateUserCommandInput)({
         ...body,
         id: params.id,

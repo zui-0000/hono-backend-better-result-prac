@@ -41,10 +41,10 @@ export const loginCommand =
     readonly uuidGenerator: UuidGenerator;
     readonly clock: Clock;
   }) =>
-  async (
+  (
     input: LoginCommandInput,
   ): Promise<Result<LoginCommandOutput, LoginCommandError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       // 「居ない」と「合わない」は user 側 (verifyCredentials) で既に undefined へ
       // 畳まれている。**ここに届く時点で分岐する材料が無い**ので、畳まれたまま 401 へ。
       // 書き分けられるとしたら畳む側で、そこは verify-credentials.test.ts が見張る。

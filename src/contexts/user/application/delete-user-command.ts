@@ -40,15 +40,15 @@ export const deleteUserCommand =
     readonly userRepository: UserRepository;
     readonly sessionRevoker: SessionRevoker;
   }) =>
-  async (
+  (
     input: DeleteUserCommandInput,
   ): Promise<Result<void, DeleteUserCommandError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 
       // 引き当てるのは存在確認のため。集約そのものは使わない。
-      const found = yield* Result.await(deps.userRepository.findById(input.id));
-      if (found === undefined) {
+      const user = yield* Result.await(deps.userRepository.findById(input.id));
+      if (user === undefined) {
         return Result.err(new ResourceNotFoundError());
       }
 

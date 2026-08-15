@@ -17,7 +17,7 @@ import type { UserRepository } from "../user-repository";
  * user の書き込み側 (`create` / `deleteById`) まで触れるようになる。auth には
  * `public/verify-credentials-query-service.ts` のポートだけを見せる。
  */
-export const verifyCredentials = async (
+export const verifyCredentials = (
   deps: {
     readonly userRepository: Pick<UserRepository, "findByMailAddress">;
     readonly passwordHasher: PasswordHasher;
@@ -25,20 +25,20 @@ export const verifyCredentials = async (
   mailAddress: MailAddress,
   password: Password,
 ): Promise<Result<UserId | undefined, RepositoryError>> =>
-  await Result.gen(async function* () {
-    const found = yield* Result.await(
+  Result.gen(async function* () {
+    const user = yield* Result.await(
       deps.userRepository.findByMailAddress(mailAddress),
     );
     // 401 にせず undefined で返すのは、**401 にするかが呼び出し側の方針**だから。
     // ここは `public/` 越しに auth へ渡る面で、ドメインが答えるのは「この人は誰か」だけ。
     // (同じ照合を「削除前の再確認」に使うなら、正解は 401 とは限らない)
-    if (found === undefined) {
+    if (user === undefined) {
       return Result.ok(undefined);
     }
 
     // **照合の失敗は握り潰して undefined に畳む。** ここを `yield*` で短絡させると
     // 「居ない」(undefined) と「合わない」(失敗) が呼び出し側から見分けられてしまう。
     // E に PasswordMismatchError が現れないのはそのため。
-    const verified = await verifyUserPassword(deps, found, password);
-    return Result.ok(verified.isOk() ? found.id : undefined);
+    const verified = await verifyUserPassword(deps, user, password);
+    return Result.ok(verified.isOk() ? user.id : undefined);
   });

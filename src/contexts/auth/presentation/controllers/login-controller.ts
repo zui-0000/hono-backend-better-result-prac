@@ -23,8 +23,8 @@ type Input = { readonly body: z.infer<typeof LoginBody> };
  */
 export const loginController = (deps: AuthDeps) => {
   const command = loginCommand(deps);
-  return async ({ body }: Input) =>
-    await Result.gen(async function* () {
+  return ({ body }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(LoginCommandInput)(body);
       const { accessToken, refreshToken } = yield* Result.await(command(input));
       return setRefreshCookie(

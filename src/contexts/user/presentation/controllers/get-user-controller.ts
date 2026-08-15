@@ -18,8 +18,8 @@ type Input = {
 /** ID を指定してユーザーを取得する (GET /users/{id})。 */
 export const getUserController = (deps: UserDeps) => {
   const query = getUserQuery(deps);
-  return async ({ auth, params }: Input) =>
-    await Result.gen(async function* () {
+  return ({ auth, params }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(GetUserQueryInput)({
         id: params.id,
         actor: auth.sub,

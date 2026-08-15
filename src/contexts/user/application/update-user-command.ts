@@ -37,10 +37,10 @@ export type UpdateUserCommandError =
  */
 export const updateUserCommand =
   (deps: { readonly userRepository: UserRepository; readonly clock: Clock }) =>
-  async (
+  (
     input: UpdateUserCommandInput,
   ): Promise<Result<void, UpdateUserCommandError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 
       const user = yield* Result.await(deps.userRepository.findById(input.id));

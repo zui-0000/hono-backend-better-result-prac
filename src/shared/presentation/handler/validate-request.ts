@@ -76,11 +76,11 @@ export type ControllerInput<
   };
 
 /** ヘッダから見るのは、相関 ID が全リクエスト必須だから (まずそこで弾く)。 */
-export const validateRequest = async <Req extends RequestSchemas>(
+export const validateRequest = <Req extends RequestSchemas>(
   c: Context,
   request: Req,
 ): Promise<Result<ValidatedRequest<Req>, BadRequestError>> =>
-  await Result.gen(async function* () {
+  Result.gen(async function* () {
     const validated: Record<string, unknown> = {};
 
     validated["header"] = yield* validateHeader(c, request.header, [

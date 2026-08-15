@@ -15,18 +15,18 @@ import type { UserRepository } from "../user-repository";
  * しただけ」を重複と誤判定しないために必要 (無いと、メールアドレスを変えない更新が
  * 常に失敗する)。
  */
-export const checkMailAddressDuplication = async (
+export const checkMailAddressDuplication = (
   deps: { readonly userRepository: Pick<UserRepository, "findByMailAddress"> },
   mailAddress: MailAddress,
   options: { readonly excluding?: UserId } = {},
 ): Promise<Result<void, MailAddressDuplicationError | RepositoryError>> =>
-  await Result.gen(async function* () {
-    const found = yield* Result.await(
+  Result.gen(async function* () {
+    const user = yield* Result.await(
       deps.userRepository.findByMailAddress(mailAddress),
     );
 
     // 除外対象本人以外の誰かが使っていれば重複。
-    if (found !== undefined && found.id !== options.excluding) {
+    if (user !== undefined && user.id !== options.excluding) {
       yield* Result.err(new MailAddressDuplicationError({ mailAddress }));
     }
     return Result.ok();

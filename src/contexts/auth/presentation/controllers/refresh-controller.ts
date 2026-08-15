@@ -26,8 +26,8 @@ type Input = { readonly cookie: RefreshCookie };
  */
 export const refreshController = (deps: AuthDeps) => {
   const command = refreshCommand(deps);
-  return async ({ cookie }: Input) =>
-    await Result.gen(async function* () {
+  return ({ cookie }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(RefreshCommandInput)({
         refreshToken: refreshTokenOf(cookie),
       });

@@ -20,8 +20,8 @@ type Input = {
 /** ユーザーを削除する (DELETE /users/{id})。 */
 export const deleteUserController = (deps: UserDeps) => {
   const command = deleteUserCommand(deps);
-  return async ({ auth, params }: Input) =>
-    await Result.gen(async function* () {
+  return ({ auth, params }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(DeleteUserCommandInput)({
         id: params.id,
         actor: auth.sub,

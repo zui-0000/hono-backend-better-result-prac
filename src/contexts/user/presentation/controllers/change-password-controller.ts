@@ -24,8 +24,8 @@ type Input = {
 /** パスワードを変更する (PUT /users/{id}/password)。 */
 export const changePasswordController = (deps: UserDeps) => {
   const command = changePasswordCommand(deps);
-  return async ({ auth, body, params }: Input) =>
-    await Result.gen(async function* () {
+  return ({ auth, body, params }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(ChangePasswordCommandInput)({
         ...body,
         id: params.id,

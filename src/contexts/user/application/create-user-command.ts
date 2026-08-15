@@ -45,10 +45,10 @@ export const createUserCommand =
     readonly uuidGenerator: UuidGenerator;
     readonly clock: Clock;
   }) =>
-  async (
+  (
     input: CreateUserCommandInput,
   ): Promise<Result<CreateUserCommandOutput, CreateUserCommandError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       yield* Result.await(checkMailAddressDuplication(deps, input.mailAddress));
 
       const hashedPassword = UserHashedPassword.parse(

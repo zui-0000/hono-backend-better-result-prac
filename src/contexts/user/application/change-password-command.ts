@@ -62,10 +62,10 @@ export const changePasswordCommand =
     readonly sessionRevoker: SessionRevoker;
     readonly clock: Clock;
   }) =>
-  async (
+  (
     input: ChangePasswordCommandInput,
   ): Promise<Result<void, ChangePasswordCommandError>> =>
-    await Result.gen(async function* () {
+    Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 
       const user = yield* Result.await(deps.userRepository.findById(input.id));

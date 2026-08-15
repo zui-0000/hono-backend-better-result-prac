@@ -25,10 +25,8 @@ export const logoutCommand =
     readonly refreshTokenRepository: RefreshTokenRepository;
     readonly clock: Clock;
   }) =>
-  async (
-    input: LogoutCommandInput,
-  ): Promise<Result<void, LogoutCommandError>> =>
-    await deps.refreshTokenRepository.revokeSession({
+  (input: LogoutCommandInput): Promise<Result<void, LogoutCommandError>> =>
+    deps.refreshTokenRepository.revokeSession({
       sessionId: input.sessionId,
       revokedAt: deps.clock.now(),
     });

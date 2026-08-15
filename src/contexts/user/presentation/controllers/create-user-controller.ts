@@ -21,8 +21,8 @@ type Input = { readonly body: z.infer<typeof CreateUserBody> };
  */
 export const createUserController = (deps: UserDeps) => {
   const command = createUserCommand(deps);
-  return async ({ body }: Input) =>
-    await Result.gen(async function* () {
+  return ({ body }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(CreateUserCommandInput)(body);
       const output = yield* Result.await(command(input));
       return SuccessResponse.Created(CreateUser201Response)(Result.ok(output));

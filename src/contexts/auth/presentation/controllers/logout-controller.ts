@@ -23,8 +23,8 @@ type Input = { readonly auth: AccessTokenClaims };
  */
 export const logoutController = (deps: AuthDeps) => {
   const command = logoutCommand(deps);
-  return async ({ auth }: Input) =>
-    await Result.gen(async function* () {
+  return ({ auth }: Input) =>
+    Result.gen(async function* () {
       const input = yield* decodeInput(LogoutCommandInput)({
         sessionId: auth.sid,
       });

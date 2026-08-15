@@ -24,8 +24,8 @@ export const verifyCredentialsQueryService = (deps: {
   readonly userRepository: UserRepository;
   readonly passwordHasher: PasswordHasher;
 }): VerifyCredentialsQueryService => ({
-  execute: async ({ mailAddress, password }) =>
-    await verifyCredentials(
+  execute: ({ mailAddress, password }) =>
+    verifyCredentials(
       deps,
       MailAddress.parse(mailAddress),
       Password.parse(password),
