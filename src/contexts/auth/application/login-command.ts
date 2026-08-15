@@ -31,15 +31,6 @@ export type LoginCommandOutput = {
   readonly refreshToken: string;
 };
 
-export type LoginCommandDeps = {
-  readonly verifyCredentialsQueryService: VerifyCredentialsQueryService;
-  readonly refreshTokenRepository: RefreshTokenRepository;
-  readonly refreshTokenIssuer: RefreshTokenIssuer;
-  readonly accessTokenIssuer: AccessTokenIssuer;
-  readonly uuidGenerator: UuidGenerator;
-  readonly clock: Clock;
-};
-
 /**
  * メールアドレスとパスワードで券を発行する。
  *
@@ -50,7 +41,14 @@ export type LoginCommandDeps = {
  * 据え置くと更新のたびにログアウトの単位が変わる。
  */
 export const createLoginCommand =
-  (deps: LoginCommandDeps) =>
+  (deps: {
+    readonly verifyCredentialsQueryService: VerifyCredentialsQueryService;
+    readonly refreshTokenRepository: RefreshTokenRepository;
+    readonly refreshTokenIssuer: RefreshTokenIssuer;
+    readonly accessTokenIssuer: AccessTokenIssuer;
+    readonly uuidGenerator: UuidGenerator;
+    readonly clock: Clock;
+  }) =>
   async (
     input: LoginCommandInput,
   ): Promise<Result<LoginCommandOutput, UnauthorizedError | RepositoryError>> =>
