@@ -77,10 +77,63 @@ const rotate = async (
   });
 
 /**
- * アクセストークンを再発行する。
+ * 盗難として扱う。**そのセッションだけ**切って 401 を返す
+ * (猶予を入れてもなお誤検出は起こりうるので、全端末は落とさない)。
  *
- * 状態ごとの分岐を **switch にして網羅を型に見張らせる** — 「どれでもなければ
- * 差し替える」と書くと、新しい状態が黙って通ってしまう (Revoked を足したとき実際に起きた)。
+ * **成功しても Err で終わる。** 失効できたかどうかに関わらず、呼び出し元へ返すのは
+ * 401 だから。失効そのものに失敗したときだけ RepositoryError がそのまま出る。
+ */
+const revokeReusedSession = async (
+  deps: RefreshCommandDeps,
+  current: RefreshToken,
+): Promise<Result<never, UnauthorizedError | RepositoryError>> =>
+  (
+    await deps.refreshTokenRepository.revokeSession({
+      sessionId: current.sessionId,
+      revokedAt: deps.clock.now(),
+    })
+  ).andThen(() => Result.err(new UnauthorizedError()));
+
+/**
+ * 更新を断る。**断るだけで、追加の防御は要らない**
+ * (既に切られている券も期限切れの券も、もうそれ以上悪用しようがない)。
+ *
+ * `revokeReusedSession` と同じ 401 で終わるが、あちらは**切ってから**断る。
+ * 理由を書き分けないので、外から見た応答は区別がつかない。
+ */
+const denyRefresh = async (): Promise<Result<never, UnauthorizedError>> =>
+  Result.err(new UnauthorizedError());
+
+/** 状態ごとの応じ方。引数の形を揃えて 1 つの表に並べるための型。 */
+type RefreshTokenStateHandler = (
+  deps: RefreshCommandDeps,
+  current: RefreshToken,
+) => Promise<Result<RefreshCommandOutput, UnauthorizedError | RepositoryError>>;
+
+/**
+ * 状態ごとの応じ方。
+ *
+ * `switch` で書くと網羅は保証されるが、`Result.gen` の中では抜けた枝が
+ * `IteratorResult` / `AnyResult` の不一致に化けて、どの状態が無いかを言わない (実測)。
+ */
+const HANDLER_BY_REFRESH_TOKEN_STATE: Record<
+  RefreshTokenState,
+  RefreshTokenStateHandler
+> = {
+  // usable / within-grace はどちらも通常どおり差し替える。
+  [RefreshTokenState.Usable]: rotate,
+  [RefreshTokenState.WithinGrace]: rotate,
+
+  // 猶予期間の外で使われた = 盗難のサイン。そのセッションだけ切る。
+  [RefreshTokenState.Reused]: revokeReusedSession,
+
+  // 既に切られている / 期限切れ。追加の防御は要らない。
+  [RefreshTokenState.Revoked]: denyRefresh,
+  [RefreshTokenState.Expired]: denyRefresh,
+};
+
+/**
+ * アクセストークンを再発行する。**引く → 居るか見る → 状態で応じ方を選ぶ**の 3 段。
  */
 export const refreshCommand =
   (deps: RefreshCommandDeps) =>
@@ -95,7 +148,7 @@ export const refreshCommand =
         input.refreshToken,
       );
 
-      // 知らない券も、下の switch が返す 401 と**同じ本文**に丸める。
+      // 知らない券も、下の表が返す 401 と**同じ本文**に丸める。
       // 書き分けると「その券は実在する」と攻撃側に教えることになる
       // (refresh-controller.test.ts が 3 通りの理由で本文の一致を見ている)。
       const current = yield* Result.await(
@@ -105,27 +158,9 @@ export const refreshCommand =
         return Result.err(new UnauthorizedError());
       }
 
-      switch (classifyRefreshToken(deps, current)) {
-        // usable / within-grace はどちらも通常どおり差し替える。
-        case RefreshTokenState.Usable:
-        case RefreshTokenState.WithinGrace:
-          return await rotate(deps, current);
-
-        // 猶予期間の外で使われた = 盗難のサイン。**そのセッションだけ**切る
-        // (猶予を入れてもなお誤検出は起こりうるので、全端末は落とさない)。
-        case RefreshTokenState.Reused: {
-          yield* Result.await(
-            deps.refreshTokenRepository.revokeSession({
-              sessionId: current.sessionId,
-              revokedAt: deps.clock.now(),
-            }),
-          );
-          return Result.err(new UnauthorizedError());
-        }
-
-        // 既に切られている / 期限切れ。追加の防御は要らない。
-        case RefreshTokenState.Revoked:
-        case RefreshTokenState.Expired:
-          return Result.err(new UnauthorizedError());
-      }
+      const refreshTokenState = classifyRefreshToken(deps, current);
+      return await HANDLER_BY_REFRESH_TOKEN_STATE[refreshTokenState](
+        deps,
+        current,
+      );
     });
