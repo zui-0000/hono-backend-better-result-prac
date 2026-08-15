@@ -1,4 +1,4 @@
-import type { Result } from "better-result";
+import { Result } from "better-result";
 import * as z from "zod";
 
 import type { Clock } from "~/shared/domain/clock";
@@ -26,7 +26,12 @@ export const logoutCommand =
     readonly clock: Clock;
   }) =>
   (input: LogoutCommandInput): Promise<Result<void, LogoutCommandError>> =>
-    deps.refreshTokenRepository.revokeSession({
-      sessionId: input.sessionId,
-      revokedAt: deps.clock.now(),
+    Result.gen(async function* () {
+      yield* Result.await(
+        deps.refreshTokenRepository.revokeSession({
+          sessionId: input.sessionId,
+          revokedAt: deps.clock.now(),
+        }),
+      );
+      return Result.ok();
     });
