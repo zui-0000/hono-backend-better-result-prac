@@ -1,5 +1,16 @@
 import { describe, expect, test } from "bun:test";
 
+import type * as z from "zod";
+
+import {
+  ChangePassword401Response,
+  CreateUser409Response,
+  GetUser400Response,
+  GetUser401Response,
+  GetUser403Response,
+  GetUser404Response,
+  GetUser500Response,
+} from "~/generated/users";
 import { MailAddress } from "~/shared/domain/model/value-objects/mail-address";
 import { BadRequestError } from "~/shared/errors/bad-request-error";
 import { ConflictError } from "~/shared/errors/conflict-error";
@@ -104,6 +115,30 @@ const CASES: readonly (readonly [
   ],
 ];
 
+/**
+ * 応答の形を**契約の写し**で確かめるための対応表。
+ *
+ * この表が無いと、`errorBody` の形と契約が別々に手書きされたまま誰も突き合わせない。
+ * 実際 status / code / title / errors へ組み替えたとき、両方を手で直している。
+ *
+ * どの操作の 4xx も同じモデルから生成されるので、代表として users の経路を使う。
+ * 401 だけ `ChangePassword401Response` を当てているのは、あそこが汎用 401 と
+ * PasswordMismatch の union になっており、両方の形を含むため。
+ */
+const SCHEMA_BY_TAG: Readonly<Record<string, z.ZodType | undefined>> = {
+  BadRequestError: GetUser400Response,
+  UnauthorizedError: GetUser401Response,
+  PasswordMismatchError: ChangePassword401Response,
+  ForbiddenError: GetUser403Response,
+  ResourceNotFoundError: GetUser404Response,
+  // **汎用の 409 はどの操作の契約にも現れない。** 契約に載っているのは専用の
+  // MailAddressDuplication だけで、ConflictError はまだ new される場所も無い。
+  ConflictError: undefined,
+  MailAddressDuplicationError: CreateUser409Response,
+  RepositoryError: GetUser500Response,
+  InternalServerError: GetUser500Response,
+};
+
 describe(handleErrorResponse.name, () => {
   test.each(CASES)(
     "%s は %i / code %s を返すこと",
@@ -128,6 +163,32 @@ describe(handleErrorResponse.name, () => {
       expect(response.body.status).toBe(status);
     },
   );
+
+  test.each(CASES.filter(([tag]) => SCHEMA_BY_TAG[tag] !== undefined))(
+    "%s の応答が契約の形を満たすこと",
+    (tag, _status, _code, _title, error) => {
+      const schema = SCHEMA_BY_TAG[tag];
+      const parsed = schema?.safeParse(handleErrorResponse(error).body);
+
+      expect(parsed?.success).toBe(true);
+      // **通っただけでは足りない。** zod の object は知らないキーを黙って落とすので、
+      // 契約に無い項目を足しても safeParse は成功する。剥がした結果と突き合わせて
+      // はじめて「余計なものを載せていない」ことまで言える。
+      expect(parsed?.success === true ? parsed.data : null).toStrictEqual(
+        handleErrorResponse(error).body,
+      );
+    },
+  );
+
+  test("契約に現れないエラーが ConflictError だけであること", () => {
+    // 新しいエラーを足したとき、契約側の操作に載せ忘れるとここで気付ける。
+    // 載っていないエラーを返すと、クライアントは知らない形を受け取ることになる。
+    const uncovered = CASES.filter(
+      ([tag]) => SCHEMA_BY_TAG[tag] === undefined,
+    ).map(([tag]) => tag);
+
+    expect(uncovered).toStrictEqual(["ConflictError"]);
+  });
 
   test("翻訳できるエラーをすべて並べていること", () => {
     // 型が数え落としを見張るのは `.match()` の側だけ。この表に足し忘れると
