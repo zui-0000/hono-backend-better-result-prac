@@ -1,13 +1,12 @@
 import { Result } from "better-result";
 import * as z from "zod";
 
-import { orNotFound } from "~/shared/application/or-not-found";
 import type { Clock } from "~/shared/domain/clock";
 import { MailAddress } from "~/shared/domain/model/value-objects/mail-address";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
 import type { MailAddressDuplicationError } from "~/shared/errors/mail-address-duplication-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
-import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
+import { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
 
 import { changeUserProfile } from "../domain/model/user";
 import { UserId } from "../domain/model/value-objects/user-id";
@@ -46,9 +45,10 @@ export const updateUserCommand =
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 
-      const user = yield* orNotFound(
-        await deps.userRepository.findById(input.id),
-      );
+      const user = yield* Result.await(deps.userRepository.findById(input.id));
+      if (user === undefined) {
+        return Result.err(new ResourceNotFoundError());
+      }
 
       yield* Result.await(
         checkMailAddressDuplication(deps, input.mailAddress, {

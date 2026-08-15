@@ -1,7 +1,6 @@
 import { Result } from "better-result";
 import * as z from "zod";
 
-import { orUnauthorized } from "~/shared/application/or-unauthorized";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { Clock } from "~/shared/domain/clock";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
@@ -96,9 +95,15 @@ export const refreshCommand =
         input.refreshToken,
       );
 
-      const current = yield* orUnauthorized(
-        await deps.refreshTokenRepository.findByTokenHash(presentedHash),
+      // 知らない券も、下の switch が返す 401 と**同じ本文**に丸める。
+      // 書き分けると「その券は実在する」と攻撃側に教えることになる
+      // (refresh-controller.test.ts が 3 通りの理由で本文の一致を見ている)。
+      const current = yield* Result.await(
+        deps.refreshTokenRepository.findByTokenHash(presentedHash),
       );
+      if (current === undefined) {
+        return Result.err(new UnauthorizedError());
+      }
 
       switch (classifyRefreshToken(deps, current)) {
         // usable / within-grace はどちらも通常どおり差し替える。

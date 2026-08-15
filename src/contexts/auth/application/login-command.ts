@@ -2,12 +2,11 @@ import { Result } from "better-result";
 import * as z from "zod";
 
 import type { VerifyCredentialsQueryService } from "~/contexts/user/public/verify-credentials-query-service";
-import { orUnauthorized } from "~/shared/application/or-unauthorized";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { Clock } from "~/shared/domain/clock";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 import type { RepositoryError } from "~/shared/errors/repository-error";
-import type { UnauthorizedError } from "~/shared/errors/unauthorized-error";
+import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import { createRefreshToken } from "../domain/model/refresh-token";
 import { SessionId } from "../domain/model/value-objects/session-id";
@@ -16,9 +15,6 @@ import type { RefreshTokenRepository } from "../domain/refresh-token-repository"
 
 /**
  * ログインの入力。契約の LoginRequest と 1 対 1。
- *
- * 値オブジェクトへ変換しないのは、**照合するのが user 側**だから。
- * auth はメールアドレスの形式もパスワードの長さも判断しない。
  */
 export const LoginCommandInput = z.object({
   mailAddress: z.string(),
@@ -34,7 +30,7 @@ export type LoginCommandOutput = {
 /**
  * メールアドレスとパスワードで券を発行する。
  *
- * **初のコンテキスト跨ぎ。** user が公開している `VerifyCredentialsQueryService`
+ * user が公開している `VerifyCredentialsQueryService`
  * だけを使い、`UserRepository` には触れない (触ると create / deleteById まで握る)。
  *
  * ログインごとに**新しいセッションを採番する**のが refresh との違い。
@@ -53,10 +49,15 @@ export const loginCommand =
     input: LoginCommandInput,
   ): Promise<Result<LoginCommandOutput, UnauthorizedError | RepositoryError>> =>
     await Result.gen(async function* () {
-      // 「居ない」と「合わない」は user 側で既に畳まれているので、畳まれたまま 401 へ。
-      const userId = yield* orUnauthorized(
-        await deps.verifyCredentialsQueryService.execute(input),
+      // 「居ない」と「合わない」は user 側 (verifyCredentials) で既に undefined へ
+      // 畳まれている。**ここに届く時点で分岐する材料が無い**ので、畳まれたまま 401 へ。
+      // 書き分けられるとしたら畳む側で、そこは verify-credentials.test.ts が見張る。
+      const userId = yield* Result.await(
+        deps.verifyCredentialsQueryService.execute(input),
       );
+      if (userId === undefined) {
+        return Result.err(new UnauthorizedError());
+      }
 
       const sessionId = SessionId.parse(deps.uuidGenerator.generate());
       const generated = await deps.refreshTokenIssuer.issue();

@@ -3,14 +3,13 @@ import * as z from "zod";
 
 import { SessionId } from "~/contexts/auth/domain/model/value-objects/session-id";
 import type { SessionRevoker } from "~/contexts/auth/public/session-revoker";
-import { orNotFound } from "~/shared/application/or-not-found";
 import type { Clock } from "~/shared/domain/clock";
 import { Password } from "~/shared/domain/model/value-objects/password";
 import type { PasswordHasher } from "~/shared/domain/password-hasher";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
 import type { PasswordMismatchError } from "~/shared/errors/password-mismatch-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
-import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
+import { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
 
 import { changeUserPassword, verifyUserPassword } from "../domain/model/user";
 import { UserHashedPassword } from "../domain/model/value-objects/user-hashed-password";
@@ -71,9 +70,10 @@ export const changePasswordCommand =
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 
-      const user = yield* orNotFound(
-        await deps.userRepository.findById(input.id),
-      );
+      const user = yield* Result.await(deps.userRepository.findById(input.id));
+      if (user === undefined) {
+        return Result.err(new ResourceNotFoundError());
+      }
 
       yield* Result.await(
         verifyUserPassword(deps, user, input.currentPassword),

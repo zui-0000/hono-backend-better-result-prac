@@ -2,10 +2,9 @@ import { Result } from "better-result";
 import * as z from "zod";
 
 import type { SessionRevoker } from "~/contexts/auth/public/session-revoker";
-import { orNotFound } from "~/shared/application/or-not-found";
 import type { ForbiddenError } from "~/shared/errors/forbidden-error";
 import type { RepositoryError } from "~/shared/errors/repository-error";
-import type { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
+import { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error";
 
 import { UserId } from "../domain/model/value-objects/user-id";
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
@@ -43,10 +42,17 @@ export const deleteUserCommand =
   > =>
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
-      yield* orNotFound(await deps.userRepository.findById(input.id));
+
+      // 引き当てるのは存在確認のため。集約そのものは使わない。
+      const found = yield* Result.await(deps.userRepository.findById(input.id));
+      if (found === undefined) {
+        return Result.err(new ResourceNotFoundError());
+      }
+
       yield* Result.await(
         deps.sessionRevoker.revokeUserSessions({ userId: input.id }),
       );
+
       yield* Result.await(deps.userRepository.deleteById(input.id));
       return Result.ok();
     });
