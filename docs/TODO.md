@@ -116,6 +116,66 @@ const MAX_AGE_SECONDS = 14 * 24 * 60 * 60; // Cookie の Max-Age (2 週間)
 
 ---
 
+## 合成ルートで組み立て関数と出来上がりが同名になる
+
+`create` を配線から外した（[`CLAUDE.md`](../CLAUDE.md) の「命名」）結果、
+**import した組み立て関数と、それが作る出来上がりが同じ名前を欲しがる**ようになった。
+
+### いまの状態
+
+```ts
+// src/app-deps.ts
+import { userRepository } from "~/contexts/user/infrastructure/user-repository";
+
+const userRepository = userRepository(params.db);
+//    ReferenceError: Cannot access 'userRepository' before initialization.
+```
+
+`const` はブロック全体に名前を張るので、**右辺も import ではなくまだ初期化されていない
+自分自身**を指す（TDZ）。`create` が付いていた頃は名前が割れていたので起きなかった。
+
+凌ぎとして、**2 度使うものだけ**局所名を集合名にしてある。
+
+```ts
+const users = userRepository(params.db);
+const refreshTokens = refreshTokenRepository(params.db);
+```
+
+1 度きりのものは直接呼べる。**オブジェクトのキーは束縛を作らない**ため
+（`getUserQueryService: getUserQueryService(params.db)` は左が property 名、右が import）。
+
+同じ理由で 2 箇所いじった。
+
+| 場所                                              | 変えたもの                | before → after    |
+| ------------------------------------------------- | ------------------------- | ----------------- |
+| `src/app.ts`                                      | Hono インスタンスの局所名 | `app` → `routes`  |
+| `src/shared/infrastructure/db/database-client.ts` | `closeDatabase` の引数名  | `database` → `db` |
+
+### なぜ後回しにしたか
+
+**3 箇所とも局所名で、外に見える面は無傷。** 実害が出ているわけではない。
+`app.ts` の `routes` はむしろ `*-routes.ts` と書き方が揃った。
+
+残る違和感は `app-deps.ts` の `users` / `refreshTokens` だけで、これは
+**合成ルートをどう読ませるか**の話になる。単独で決めるより、`app.ts` /
+`*-routes.ts` / controller の命名を一望するときに一緒に決めるほうが早い。
+
+### 検討した案
+
+|       | 案                                                               | 備考                               |
+| ----- | ---------------------------------------------------------------- | ---------------------------------- |
+| **A** | 2 度使うものだけ局所名を集合名にする                             | **採用中。** 差分が最小            |
+| B     | すべて `repositories` などに束ねてから配る                       | 層ごとの区切りコメントが分断される |
+| C     | import に別名を付ける（`userRepository as buildUserRepository`） | 合成ルートだけ別の語彙になる       |
+| D     | 配線にも `create` を戻す                                         | 命名表ごと差し戻し                 |
+
+### 着手の引き金
+
+**`contexts/*/presentation` のレビュー。** `app.ts` の `routes`、`*-routes.ts`、
+controller の命名を並べて見るときに、合成ルートの局所名も一緒に決める。
+
+---
+
 ## 退会済み利用者の券が行として残る
 
 `t_refresh_token` は `t_user` に **FK を張っていない**（理由は
