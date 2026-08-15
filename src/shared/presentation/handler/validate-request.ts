@@ -47,7 +47,13 @@ const validateHeader = <S extends z.ZodType>(
   return decodeInput(schema)(source);
 };
 
-/** リクエストのどの入力源を検証するかの宣言。header は全経路必須 (相関 ID)。 */
+/**
+ * リクエストのどの入力源を検証するかの宣言。
+ *
+ * **header だけ必須。** 契約上 `X-Request-Id` は任意だが、
+ * 全経路が受け付ける以上、経路の宣言からは落とせないようにしてある
+ * (型が必須にしていることが「書き忘れ」への唯一の歯止め)。
+ */
 export type RequestSchemas = {
   readonly header: z.ZodType;
   readonly body?: z.ZodType;
@@ -75,7 +81,7 @@ export type ControllerInput<
     readonly c: Context;
   };
 
-/** ヘッダから見るのは、相関 ID が全リクエスト必須だから (まずそこで弾く)。 */
+/** ヘッダから見る。相関 ID は任意だが、送られた以上は形を見る (壊れていれば 400)。 */
 export const validateRequest = <Req extends RequestSchemas>(
   c: Context,
   request: Req,

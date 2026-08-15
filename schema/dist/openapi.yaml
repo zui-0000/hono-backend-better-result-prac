@@ -392,8 +392,8 @@ components:
     CommonHeaders:
       name: X-Request-Id
       in: header
-      required: true
-      description: リクエストの相関ID。クライアントが UUID v7 で採番して必ず送る
+      required: false
+      description: リクエストの相関ID。送らなければサーバが採番する
       schema:
         $ref: '#/components/schemas/RequestId'
   schemas:
@@ -643,7 +643,7 @@ components:
     RequestId:
       type: string
       pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$
-      description: リクエストの相関ID (UUID v7)。クライアントが採番し、サーバーのログと突き合わせて追跡する
+      description: リクエストの相関ID (UUID v7)。クライアントが採番するとログを突き合わせて追跡できる。省略・不正な形式ならサーバーが採番する
       title: RequestId
       examples:
         - 018eef15-1234-7123-8123-123456789abc

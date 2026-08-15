@@ -1,6 +1,7 @@
 import type { MiddlewareHandler } from "hono";
 import { createMiddleware } from "hono/factory";
 
+import { Uuid } from "~/shared/domain/model/uuid";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 
 import { HttpHeader } from "./constants/http-header";
@@ -11,29 +12,30 @@ export type RequestIdEnv = {
   };
 };
 
-const MAX_LENGTH = 128;
-
-/** ログに載せる値なので、改行や制御文字を弾く (ログインジェクション対策)。 */
-const SAFE_PATTERN = /^[\w.-]+$/u;
-
 /**
  * 相関 ID を確定させる。**経路にマッチしないリクエストにも要る**ので、
  * 経路ごとの handleWithResult では覆えず middleware にしかできない。
  *
- * 受け取った値が使えなければ採番し直す。採番は 1 箇所だけ — 2 箇所でやると
- * 応答ヘッダとログに別々の ID が載る。
+ * **契約では任意**なので、送られてこなければ採番する。**ここが唯一の入口**なので、
+ * ログと応答ヘッダに載る値は必ず uuid v7 になる。
+ *
+ * 形が違う値も採番し直す。契約を持つ経路では `validateRequest` が先に 400 で弾くが、
+ * **経路にマッチしないリクエストと /health はそこを通らない** — その 2 つのために
+ * ここでも見る必要がある。
+ *
+ * 判定を `Uuid` に寄せたので、ログインジェクションの心配も同時に消える
+ * (uuid v7 は長さが固定で制御文字を含まないため、通った値は必ず安全)。
+ *
+ * 採番は 1 箇所だけ — 2 箇所でやると応答ヘッダとログに別々の ID が載る。
  */
 export const resolveRequestId = (deps: {
   readonly uuidGenerator: UuidGenerator;
 }): MiddlewareHandler<RequestIdEnv> =>
   createMiddleware<RequestIdEnv>(async (c, next) => {
-    const incoming = c.req.header(HttpHeader.RequestId);
-    const requestId =
-      incoming !== undefined &&
-      incoming.length <= MAX_LENGTH &&
-      SAFE_PATTERN.test(incoming)
-        ? incoming
-        : deps.uuidGenerator.generate();
+    const incoming = Uuid.safeParse(c.req.header(HttpHeader.RequestId));
+    const requestId = incoming.success
+      ? incoming.data
+      : deps.uuidGenerator.generate();
 
     c.set("requestId", requestId);
 
