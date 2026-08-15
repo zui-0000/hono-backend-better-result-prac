@@ -54,4 +54,67 @@ describe(createDeleteUserController.name, () => {
     const response = await del(makeDeps(), OTHER_UUID);
     expect(response.status).toBe(HttpStatus.Forbidden);
   });
+
+  test("退会したらセッションも切ること", async () => {
+    // 券に FK が張られていないので DB は後始末をしてくれない。切らないと
+    // **消えた利用者が有効な券を持ち続け、無期限に再発行できる** (実測で踏んだ)。
+    const revoked: unknown[] = [];
+    const deps = makeDeps({
+      userRepository: { findById: async () => Result.ok(makeUser()) },
+      sessionRevoker: {
+        revokeUserSessions: async (params) => {
+          revoked.push(params);
+          return Result.ok();
+        },
+      },
+    });
+
+    const response = await del(deps);
+
+    expect(response.status).toBe(HttpStatus.NoContent);
+    // excluding は渡さない = 全端末を落とす。退会に「残す端末」は無い。
+    expect(revoked).toStrictEqual([{ userId: FIXED_UUID }]);
+  });
+
+  test("失効を済ませてから消すこと", async () => {
+    // 逆順だと、失効に失敗したとき「消えた利用者の券だけが生きている」状態が残り、
+    // 再試行しても直らない (相手はもう居ないので 404 になる)。
+    const order: string[] = [];
+    const deps = makeDeps({
+      userRepository: {
+        findById: async () => Result.ok(makeUser()),
+        deleteById: async () => {
+          order.push("delete");
+          return Result.ok();
+        },
+      },
+      sessionRevoker: {
+        revokeUserSessions: async () => {
+          order.push("revoke");
+          return Result.ok();
+        },
+      },
+    });
+
+    await del(deps);
+
+    expect(order).toStrictEqual(["revoke", "delete"]);
+  });
+
+  test("存在しなければ失効も走らないこと", async () => {
+    const order: string[] = [];
+    const deps = makeDeps({
+      sessionRevoker: {
+        revokeUserSessions: async () => {
+          order.push("revoke");
+          return Result.ok();
+        },
+      },
+    });
+
+    const response = await del(deps);
+
+    expect(response.status).toBe(HttpStatus.NotFound);
+    expect(order).toStrictEqual([]);
+  });
 });

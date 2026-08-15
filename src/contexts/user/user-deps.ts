@@ -1,3 +1,4 @@
+import type { SessionRevoker } from "~/contexts/auth/public/session-revoker";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { Clock } from "~/shared/domain/clock";
 import type { PasswordHasher } from "~/shared/domain/password-hasher";
@@ -24,4 +25,7 @@ export type UserDeps = {
   // Bearer の検証は handleWithResult が行うため、認証を要求する経路が
   // 1 本でもあるコンテキストはこれを要求する。
   readonly accessTokenIssuer: AccessTokenIssuer;
+  // 退会とパスワード変更が auth のセッションを畳むため (auth/public/ のポート)。
+  // user は券の存在も Repository も知らず、「切る」という動詞だけを借りる。
+  readonly sessionRevoker: SessionRevoker;
 };

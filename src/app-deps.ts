@@ -1,6 +1,7 @@
 import type { AuthDeps } from "~/contexts/auth/auth-deps";
 import { refreshTokenIssuer } from "~/contexts/auth/infrastructure/refresh-token-issuer";
 import { createRefreshTokenRepository } from "~/contexts/auth/infrastructure/refresh-token-repository";
+import { createSessionRevoker } from "~/contexts/auth/infrastructure/session-revoker";
 import { createGetUserQueryService } from "~/contexts/user/infrastructure/get-user-query-service";
 import { createUserRepository } from "~/contexts/user/infrastructure/user-repository";
 import { createVerifyCredentialsQueryService } from "~/contexts/user/infrastructure/verify-credentials-query-service";
@@ -33,6 +34,7 @@ export const createAppDeps = (params: {
   readonly cookieSettings: CookieSettings;
 }): AppDeps => {
   const userRepository = createUserRepository(params.db);
+  const refreshTokenRepository = createRefreshTokenRepository(params.db);
 
   return {
     // --- user ---
@@ -46,8 +48,11 @@ export const createAppDeps = (params: {
     }),
 
     // --- auth ---
-    refreshTokenRepository: createRefreshTokenRepository(params.db),
+    refreshTokenRepository,
     refreshTokenIssuer,
+
+    // --- auth が user へ公開している面 (Customer/Supplier の逆向き) ---
+    sessionRevoker: createSessionRevoker({ refreshTokenRepository, clock }),
 
     // --- 横断 ---
     // params 経由の 2 つは、起動時に環境変数を読んで組み立てたもの (main.ts)。

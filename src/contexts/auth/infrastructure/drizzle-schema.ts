@@ -34,6 +34,15 @@ const REVOKED_REASONS = [
  * 「user コンテキストの削除が auth の都合で失敗する」という結合が生まれ、
  * コンテキストを分けた意味が消えるため。参照整合性はアプリ側の手順で保つ
  * (詳細は 01-database.md「コンテキストを跨ぐ参照に FK を張らない」)。
+ *
+ * **その「アプリ側の手順」の実体はここ。** user/application/delete-user-command.ts が
+ * auth/public/session-revoker.ts を呼び、**削除より先に**券を失効させる。
+ * 順序が逆だと、失効に失敗したとき「消えた利用者の券だけが生きている」状態が残り、
+ * 再試行しても直らない (相手はもう居ないので 404 になる)。
+ *
+ * ON DELETE CASCADE なら削除は失敗しないので上の理由は当たらないが、**表が物理的に
+ * 結合して auth を別 DB へ切り出す道が塞がる**ため採らなかった。引き換えに失効済みの
+ * 行は退会後も残る (掃除は docs/TODO.md)。
  */
 export const tRefreshToken = pgTable(
   "t_refresh_token",

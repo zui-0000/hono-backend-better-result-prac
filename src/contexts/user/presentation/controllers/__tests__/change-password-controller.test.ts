@@ -4,6 +4,7 @@ import { Result } from "better-result";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import {
+  FAKE_CLAIMS,
   FAKE_HASH,
   FIXED_UUID,
   headers,
@@ -90,5 +91,73 @@ describe(createChangePasswordController.name, () => {
   test("存在しなければ 404", async () => {
     const response = await put(makeDeps());
     expect(response.status).toBe(HttpStatus.NotFound);
+  });
+
+  test("いま操作している端末以外のセッションを切ること", async () => {
+    // 変えたい動機の大半は「漏れたかもしれない」。切らないと
+    // **盗んだ側のセッションだけが生き残る** (実測で踏んだ)。
+    const revoked: unknown[] = [];
+    const deps = makeDeps({
+      userRepository: { findById: async () => Result.ok(makeUser()) },
+      sessionRevoker: {
+        revokeUserSessions: async (params) => {
+          revoked.push(params);
+          return Result.ok();
+        },
+      },
+    });
+
+    const response = await put(deps);
+
+    expect(response.status).toBe(HttpStatus.NoContent);
+    // excluding は claims の sid。変えた本人まで追い出さない。
+    expect(revoked).toStrictEqual([
+      { userId: FIXED_UUID, excluding: FAKE_CLAIMS.sid },
+    ]);
+  });
+
+  test("失効を済ませてから差し替えること", async () => {
+    // 逆順だと、差し替えは通ったのに失効で落ちたとき盗まれた券が生き残り、
+    // しかも再試行できない (currentPassword が既に古く 401 になる)。
+    const order: string[] = [];
+    const deps = makeDeps({
+      userRepository: {
+        findById: async () => Result.ok(makeUser()),
+        updatePassword: async () => {
+          order.push("update");
+          return Result.ok();
+        },
+      },
+      sessionRevoker: {
+        revokeUserSessions: async () => {
+          order.push("revoke");
+          return Result.ok();
+        },
+      },
+    });
+
+    await put(deps);
+
+    expect(order).toStrictEqual(["revoke", "update"]);
+  });
+
+  test("現在のパスワードが違えば失効も走らないこと", async () => {
+    // 打ち間違い 1 回で全端末が落ちると、盗難検出より先に自分が困る。
+    const order: string[] = [];
+    const deps = makeDeps({
+      userRepository: { findById: async () => Result.ok(makeUser()) },
+      passwordHasher: { verify: async () => false },
+      sessionRevoker: {
+        revokeUserSessions: async () => {
+          order.push("revoke");
+          return Result.ok();
+        },
+      },
+    });
+
+    const response = await put(deps);
+
+    expect(response.status).toBe(HttpStatus.Unauthorized);
+    expect(order).toStrictEqual([]);
   });
 });

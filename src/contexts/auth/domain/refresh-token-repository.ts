@@ -1,5 +1,6 @@
 import type { Result } from "better-result";
 
+import type { UserId } from "~/contexts/user/domain/model/value-objects/user-id";
 import type { RepositoryError } from "~/shared/errors/repository-error";
 
 import type { RefreshToken } from "./model/refresh-token";
@@ -40,5 +41,20 @@ export type RefreshTokenRepository = {
   readonly revokeSession: (params: {
     readonly sessionId: SessionId;
     readonly revokedAt: Date;
+  }) => Promise<Result<void, RepositoryError>>;
+  /**
+   * 利用者の券を**セッションを跨いで**すべて失効させる。退会とパスワード変更の出口。
+   *
+   * `revokeSession` と分けてあるのは切る単位が違うから。あちらは「この端末」、
+   * こちらは「この人の全端末」。同じメソッドに畳むと、ログアウトが取り違えで
+   * 全端末を落とす事故が書けてしまう。
+   *
+   * `excluding` に渡したセッションだけ残す (パスワード変更でいま操作している端末を
+   * 落とさないため)。時刻と理由の扱いは `revokeSession` と同じ。
+   */
+  readonly revokeUserSessions: (params: {
+    readonly userId: UserId;
+    readonly revokedAt: Date;
+    readonly excluding?: SessionId;
   }) => Promise<Result<void, RepositoryError>>;
 };

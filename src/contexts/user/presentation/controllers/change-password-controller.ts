@@ -30,6 +30,7 @@ export const createChangePasswordController = (deps: UserDeps) => {
         ...body,
         id: params.id,
         actor: auth.sub,
+        actorSession: auth.sid,
       });
       yield* Result.await(command(input));
       return SuccessResponse.NoContent(Result.ok());

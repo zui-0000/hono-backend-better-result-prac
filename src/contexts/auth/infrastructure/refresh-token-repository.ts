@@ -1,5 +1,5 @@
 import { Result } from "better-result";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, ne, sql } from "drizzle-orm";
 
 import type { Database } from "~/shared/infrastructure/db/database-client";
 import { handleDbError } from "~/shared/infrastructure/db/error/handle-db-error";
@@ -72,6 +72,30 @@ export const createRefreshTokenRepository = (
             revokedReason: RevokedReasonEnum.Revoked,
           })
           .where(eq(tRefreshToken.sessionId, sessionId)),
+      )
+    )
+      .mapError(handleDbError)
+      .map(() => void 0),
+
+  // 退会とパスワード変更の出口。**セッションを跨いで**その利用者の券を切る。
+  // 時刻と理由の扱いは revokeSession と同じ (coalesce で最初の失効時刻を残す)。
+  revokeUserSessions: async ({ userId, revokedAt, excluding }) =>
+    (
+      await Result.tryPromise(() =>
+        db
+          .update(tRefreshToken)
+          .set({
+            revokedAt: sql`coalesce(${tRefreshToken.revokedAt}, ${revokedAt})`,
+            revokedReason: RevokedReasonEnum.Revoked,
+          })
+          .where(
+            excluding === undefined
+              ? eq(tRefreshToken.userId, userId)
+              : and(
+                  eq(tRefreshToken.userId, userId),
+                  ne(tRefreshToken.sessionId, excluding),
+                ),
+          ),
       )
     )
       .mapError(handleDbError)

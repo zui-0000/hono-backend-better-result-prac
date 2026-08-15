@@ -4,6 +4,7 @@ import type { AppDeps } from "~/app-deps";
 import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/refresh-token-hash";
 import type { RefreshTokenIssuer } from "~/contexts/auth/domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "~/contexts/auth/domain/refresh-token-repository";
+import type { SessionRevoker } from "~/contexts/auth/public/session-revoker";
 import type { GetUserQueryService } from "~/contexts/user/application/get-user-query-service";
 import type { UserRepository } from "~/contexts/user/domain/user-repository";
 import type { VerifyCredentialsQueryService } from "~/contexts/user/public/verify-credentials-query-service";
@@ -42,6 +43,7 @@ export const makeDeps = (
     readonly refreshTokenIssuer?: Partial<RefreshTokenIssuer>;
     readonly accessTokenIssuer?: Partial<AccessTokenIssuer>;
     readonly verifyCredentialsQueryService?: Partial<VerifyCredentialsQueryService>;
+    readonly sessionRevoker?: Partial<SessionRevoker>;
   } = {},
 ): AppDeps => ({
   userRepository: {
@@ -70,6 +72,7 @@ export const makeDeps = (
     findByTokenHash: async () => Result.ok(undefined),
     rotate: async () => Result.ok(),
     revokeSession: async () => Result.ok(),
+    revokeUserSessions: async () => Result.ok(),
     ...overrides.refreshTokenRepository,
   },
 
@@ -92,6 +95,11 @@ export const makeDeps = (
   verifyCredentialsQueryService: {
     execute: async () => Result.ok(undefined),
     ...overrides.verifyCredentialsQueryService,
+  },
+
+  sessionRevoker: {
+    revokeUserSessions: async () => Result.ok(),
+    ...overrides.sessionRevoker,
   },
 
   // テストは http:// で叩くので Secure を外す。属性の値そのものを見るケースが
