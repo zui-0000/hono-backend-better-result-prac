@@ -3,11 +3,9 @@ import type * as z from "zod";
 
 import { GetUser200Response, type GetUserParams } from "~/generated/users";
 import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
-import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import { getUserQuery } from "../../application/get-user-query";
-import { GetUserQueryInput } from "../../application/get-user-query";
 import type { UserDeps } from "../../user-deps";
 
 type Input = {
@@ -20,10 +18,10 @@ export const getUserController = (deps: UserDeps) => {
   const query = getUserQuery(deps);
   return ({ auth, params }: Input) =>
     Result.gen(async function* () {
-      const input = yield* decodeInput(GetUserQueryInput)({
+      const input = {
         id: params.id,
         actor: auth.sub,
-      });
+      };
       const output = yield* Result.await(query(input));
       return SuccessResponse.Ok(GetUser200Response)(Result.ok(output));
     });

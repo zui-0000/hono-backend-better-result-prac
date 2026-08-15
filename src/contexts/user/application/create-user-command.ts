@@ -16,12 +16,17 @@ import { UserName } from "../domain/model/value-objects/user-name";
 import { checkMailAddressDuplication } from "../domain/services/check-mail-address-duplication";
 import type { UserRepository } from "../domain/user-repository";
 
-export const CreateUserCommandInput = z.object({
+export type CreateUserCommandInput = {
+  readonly name: string;
+  readonly mailAddress: string;
+  readonly password: string;
+};
+
+const CreateUserCommandValues = z.object({
   name: UserName,
   mailAddress: MailAddress,
   password: Password,
 });
-export type CreateUserCommandInput = z.infer<typeof CreateUserCommandInput>;
 
 export type CreateUserCommandOutput = { readonly id: UserId };
 
@@ -49,17 +54,16 @@ export const createUserCommand =
     input: CreateUserCommandInput,
   ): Promise<Result<CreateUserCommandOutput, CreateUserCommandError>> =>
     Result.gen(async function* () {
-      yield* Result.await(checkMailAddressDuplication(deps, input.mailAddress));
+      const { name, mailAddress, password } =
+        CreateUserCommandValues.parse(input);
+
+      yield* Result.await(checkMailAddressDuplication(deps, mailAddress));
 
       const hashedPassword = UserHashedPassword.parse(
-        await deps.passwordHasher.hash(input.password),
+        await deps.passwordHasher.hash(password),
       );
 
-      const user = createUser(deps, {
-        name: input.name,
-        mailAddress: input.mailAddress,
-        hashedPassword,
-      });
+      const user = createUser(deps, { name, mailAddress, hashedPassword });
 
       yield* Result.await(deps.userRepository.create(user));
       return Result.ok({ id: user.id });

@@ -8,8 +8,12 @@ import { ResourceNotFoundError } from "~/shared/errors/resource-not-found-error"
 import { UserId } from "../domain/model/value-objects/user-id";
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 
-export const GetUserQueryInput = z.object({ id: UserId, actor: UserId });
-export type GetUserQueryInput = z.infer<typeof GetUserQueryInput>;
+export type GetUserQueryInput = {
+  readonly id: string;
+  readonly actor: string;
+};
+
+const GetUserQueryValues = z.object({ id: UserId, actor: UserId });
 
 export type GetUserQueryOutput = {
   readonly name: string;
@@ -41,10 +45,12 @@ export const getUserQuery =
     input: GetUserQueryInput,
   ): Promise<Result<GetUserQueryOutput, GetUserQueryError>> =>
     Result.gen(async function* () {
-      yield* checkUserIsSelf(input.id, input.actor);
+      const { id, actor } = GetUserQueryValues.parse(input);
+
+      yield* checkUserIsSelf(id, actor);
 
       const user = yield* Result.await(
-        deps.getUserQueryService.execute({ id: input.id }),
+        deps.getUserQueryService.execute({ id }),
       );
       if (user === undefined) {
         return Result.err(new ResourceNotFoundError());

@@ -2,13 +2,9 @@ import { Result } from "better-result";
 import type * as z from "zod";
 
 import { CreateUser201Response, type CreateUserBody } from "~/generated/users";
-import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import {
-  createUserCommand,
-  CreateUserCommandInput,
-} from "../../application/create-user-command";
+import { createUserCommand } from "../../application/create-user-command";
 import type { UserDeps } from "../../user-deps";
 
 type Input = { readonly body: z.infer<typeof CreateUserBody> };
@@ -23,7 +19,7 @@ export const createUserController = (deps: UserDeps) => {
   const command = createUserCommand(deps);
   return ({ body }: Input) =>
     Result.gen(async function* () {
-      const input = yield* decodeInput(CreateUserCommandInput)(body);
+      const input = body;
       const output = yield* Result.await(command(input));
       return SuccessResponse.Created(CreateUser201Response)(Result.ok(output));
     });

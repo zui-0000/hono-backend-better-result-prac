@@ -3,13 +3,9 @@ import type * as z from "zod";
 
 import type { UpdateUserBody, UpdateUserParams } from "~/generated/users";
 import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
-import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import {
-  updateUserCommand,
-  UpdateUserCommandInput,
-} from "../../application/update-user-command";
+import { updateUserCommand } from "../../application/update-user-command";
 import type { UserDeps } from "../../user-deps";
 
 type Input = {
@@ -23,11 +19,11 @@ export const updateUserController = (deps: UserDeps) => {
   const command = updateUserCommand(deps);
   return ({ auth, body, params }: Input) =>
     Result.gen(async function* () {
-      const input = yield* decodeInput(UpdateUserCommandInput)({
+      const input = {
         ...body,
         id: params.id,
         actor: auth.sub,
-      });
+      };
       yield* Result.await(command(input));
       return SuccessResponse.NoContent(Result.ok());
     });

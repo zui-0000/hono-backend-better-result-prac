@@ -7,10 +7,9 @@ import type { RepositoryError } from "~/shared/errors/repository-error";
 import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
-export const LogoutCommandInput = z.object({
-  sessionId: SessionId,
-});
-export type LogoutCommandInput = z.infer<typeof LogoutCommandInput>;
+export type LogoutCommandInput = { readonly sessionId: string };
+
+const LogoutCommandValues = z.object({ sessionId: SessionId });
 
 export type LogoutCommandError = RepositoryError;
 
@@ -27,9 +26,11 @@ export const logoutCommand =
   }) =>
   (input: LogoutCommandInput): Promise<Result<void, LogoutCommandError>> =>
     Result.gen(async function* () {
+      const { sessionId } = LogoutCommandValues.parse(input);
+
       yield* Result.await(
         deps.refreshTokenRepository.revokeSession({
-          sessionId: input.sessionId,
+          sessionId,
           revokedAt: deps.clock.now(),
         }),
       );

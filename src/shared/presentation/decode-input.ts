@@ -26,8 +26,9 @@ const toErrorItems = (error: z.ZodError): readonly ErrorItem[] =>
  * HTTP 由来の値から、**ユースケースの入力 DTO を組み立てる**。
  * 失敗は `BadRequestError`（違反フィールドつき）。
  *
- * **この層で唯一、controller が直接呼ぶもの。** 契約で検証済みの値を、
- * ドメインの語彙 (値オブジェクト) へ変換する役目を持つ。
+ * 呼ぶのは `validateRequest` だけ。**契約を満たすかどうか**を見るのが仕事で、
+ * ドメインの語彙 (値オブジェクト) への変換は application が値オブジェクトの
+ * `.parse()` で行う (落ちたら契約とのズレ = バグなので throw させる)。
  */
 export const decodeInput =
   <S extends z.ZodType>(schema: S) =>

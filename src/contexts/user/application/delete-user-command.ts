@@ -10,11 +10,15 @@ import { UserId } from "../domain/model/value-objects/user-id";
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 import type { UserRepository } from "../domain/user-repository";
 
-export const DeleteUserCommandInput = z.object({
+export type DeleteUserCommandInput = {
+  readonly id: string;
+  readonly actor: string;
+};
+
+const DeleteUserCommandValues = z.object({
   id: UserId,
   actor: UserId,
 });
-export type DeleteUserCommandInput = z.infer<typeof DeleteUserCommandInput>;
 
 export type DeleteUserCommandError =
   | ForbiddenError
@@ -44,18 +48,20 @@ export const deleteUserCommand =
     input: DeleteUserCommandInput,
   ): Promise<Result<void, DeleteUserCommandError>> =>
     Result.gen(async function* () {
-      yield* checkUserIsSelf(input.id, input.actor);
+      const { id, actor } = DeleteUserCommandValues.parse(input);
+
+      yield* checkUserIsSelf(id, actor);
 
       // 引き当てるのは存在確認のため。集約そのものは使わない。
-      const user = yield* Result.await(deps.userRepository.findById(input.id));
+      const user = yield* Result.await(deps.userRepository.findById(id));
       if (user === undefined) {
         return Result.err(new ResourceNotFoundError());
       }
 
       yield* Result.await(
-        deps.sessionRevoker.revokeUserSessions({ userId: input.id }),
+        deps.sessionRevoker.revokeUserSessions({ userId: id }),
       );
 
-      yield* Result.await(deps.userRepository.deleteById(input.id));
+      yield* Result.await(deps.userRepository.deleteById(id));
       return Result.ok();
     });

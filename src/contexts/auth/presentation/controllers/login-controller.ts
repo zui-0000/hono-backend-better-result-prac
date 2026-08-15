@@ -2,13 +2,9 @@ import { Result } from "better-result";
 import type * as z from "zod";
 
 import { Login200Response, type LoginBody } from "~/generated/auth";
-import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import {
-  loginCommand,
-  LoginCommandInput,
-} from "../../application/login-command";
+import { loginCommand } from "../../application/login-command";
 import type { AuthDeps } from "../../auth-deps";
 import { setRefreshCookie } from "../refresh-cookie";
 
@@ -25,8 +21,7 @@ export const loginController = (deps: AuthDeps) => {
   const command = loginCommand(deps);
   return ({ body }: Input) =>
     Result.gen(async function* () {
-      const input = yield* decodeInput(LoginCommandInput)(body);
-      const { accessToken, refreshToken } = yield* Result.await(command(input));
+      const { accessToken, refreshToken } = yield* Result.await(command(body));
       return setRefreshCookie(
         deps.cookieSettings,
         refreshToken,

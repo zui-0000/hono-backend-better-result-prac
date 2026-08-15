@@ -1,13 +1,9 @@
 import { Result } from "better-result";
 
 import { Refresh200Response } from "~/generated/auth";
-import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import {
-  refreshCommand,
-  RefreshCommandInput,
-} from "../../application/refresh-command";
+import { refreshCommand } from "../../application/refresh-command";
 import type { AuthDeps } from "../../auth-deps";
 import {
   type RefreshCookie,
@@ -28,10 +24,9 @@ export const refreshController = (deps: AuthDeps) => {
   const command = refreshCommand(deps);
   return ({ cookie }: Input) =>
     Result.gen(async function* () {
-      const input = yield* decodeInput(RefreshCommandInput)({
-        refreshToken: refreshTokenOf(cookie),
-      });
-      const { accessToken, refreshToken } = yield* Result.await(command(input));
+      const { accessToken, refreshToken } = yield* Result.await(
+        command({ refreshToken: refreshTokenOf(cookie) }),
+      );
       return setRefreshCookie(
         deps.cookieSettings,
         refreshToken,

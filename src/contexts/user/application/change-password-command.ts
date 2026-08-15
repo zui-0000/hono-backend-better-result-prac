@@ -24,16 +24,21 @@ import type { UserRepository } from "../domain/user-repository";
  * (`logout-command.ts` と同じ経路)。ここで brand に落としておくと、形式が壊れた
  * 値は decodeInput が 400 で弾き、内側に素の文字列が流れ込まない。
  */
-export const ChangePasswordCommandInput = z.object({
+export type ChangePasswordCommandInput = {
+  readonly id: string;
+  readonly actor: string;
+  readonly actorSession: string;
+  readonly currentPassword: string;
+  readonly newPassword: string;
+};
+
+const ChangePasswordCommandValues = z.object({
   id: UserId,
   actor: UserId,
   actorSession: SessionId,
   currentPassword: Password,
   newPassword: Password,
 });
-export type ChangePasswordCommandInput = z.infer<
-  typeof ChangePasswordCommandInput
->;
 
 export type ChangePasswordCommandError =
   | ForbiddenError
@@ -66,25 +71,26 @@ export const changePasswordCommand =
     input: ChangePasswordCommandInput,
   ): Promise<Result<void, ChangePasswordCommandError>> =>
     Result.gen(async function* () {
-      yield* checkUserIsSelf(input.id, input.actor);
+      const { id, actor, actorSession, currentPassword, newPassword } =
+        ChangePasswordCommandValues.parse(input);
 
-      const user = yield* Result.await(deps.userRepository.findById(input.id));
+      yield* checkUserIsSelf(id, actor);
+
+      const user = yield* Result.await(deps.userRepository.findById(id));
       if (user === undefined) {
         return Result.err(new ResourceNotFoundError());
       }
 
-      yield* Result.await(
-        verifyUserPassword(deps, user, input.currentPassword),
-      );
+      yield* Result.await(verifyUserPassword(deps, user, currentPassword));
 
       const hashedPassword = UserHashedPassword.parse(
-        await deps.passwordHasher.hash(input.newPassword),
+        await deps.passwordHasher.hash(newPassword),
       );
 
       yield* Result.await(
         deps.sessionRevoker.revokeUserSessions({
-          userId: input.id,
-          excluding: input.actorSession,
+          userId: id,
+          excluding: actorSession,
         }),
       );
 

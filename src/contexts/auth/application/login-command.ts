@@ -1,5 +1,4 @@
 import { Result } from "better-result";
-import * as z from "zod";
 
 import type { VerifyCredentialsQueryService } from "~/contexts/user/public/verify-credentials-query-service";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
@@ -13,11 +12,10 @@ import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
-export const LoginCommandInput = z.object({
-  mailAddress: z.string(),
-  password: z.string(),
-});
-export type LoginCommandInput = z.infer<typeof LoginCommandInput>;
+export type LoginCommandInput = {
+  readonly mailAddress: string;
+  readonly password: string;
+};
 
 export type LoginCommandOutput = {
   readonly accessToken: string;

@@ -1,5 +1,4 @@
 import { Result } from "better-result";
-import * as z from "zod";
 
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { Clock } from "~/shared/domain/clock";
@@ -18,15 +17,9 @@ import {
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
-/**
- * 更新の入力。券に形式の制約を付けないのは**不透明トークンだから** —
- * 中身に意味を持たせない以上、ここで検証できるのは長さくらいで、
- * それは契約スキーマ (presentation) が既に見ている。
- */
-export const RefreshCommandInput = z.object({
-  refreshToken: z.string(),
-});
-export type RefreshCommandInput = z.infer<typeof RefreshCommandInput>;
+export type RefreshCommandInput = {
+  readonly refreshToken: string;
+};
 
 export type RefreshCommandOutput = {
   readonly accessToken: string;

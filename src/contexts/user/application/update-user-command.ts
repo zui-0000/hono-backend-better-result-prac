@@ -15,13 +15,19 @@ import { checkMailAddressDuplication } from "../domain/services/check-mail-addre
 import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 import type { UserRepository } from "../domain/user-repository";
 
-export const UpdateUserCommandInput = z.object({
+export type UpdateUserCommandInput = {
+  readonly id: string;
+  readonly actor: string;
+  readonly name: string;
+  readonly mailAddress: string;
+};
+
+const UpdateUserCommandValues = z.object({
   id: UserId,
   actor: UserId,
   name: UserName,
   mailAddress: MailAddress,
 });
-export type UpdateUserCommandInput = z.infer<typeof UpdateUserCommandInput>;
 
 export type UpdateUserCommandError =
   | ForbiddenError
@@ -41,23 +47,23 @@ export const updateUserCommand =
     input: UpdateUserCommandInput,
   ): Promise<Result<void, UpdateUserCommandError>> =>
     Result.gen(async function* () {
-      yield* checkUserIsSelf(input.id, input.actor);
+      const { id, actor, name, mailAddress } =
+        UpdateUserCommandValues.parse(input);
 
-      const user = yield* Result.await(deps.userRepository.findById(input.id));
+      yield* checkUserIsSelf(id, actor);
+
+      const user = yield* Result.await(deps.userRepository.findById(id));
       if (user === undefined) {
         return Result.err(new ResourceNotFoundError());
       }
 
       yield* Result.await(
-        checkMailAddressDuplication(deps, input.mailAddress, {
+        checkMailAddressDuplication(deps, mailAddress, {
           excluding: user.id,
         }),
       );
 
-      const updated = changeUserProfile(deps, user, {
-        name: input.name,
-        mailAddress: input.mailAddress,
-      });
+      const updated = changeUserProfile(deps, user, { name, mailAddress });
 
       yield* Result.await(deps.userRepository.updateProfile(updated));
       return Result.ok();
