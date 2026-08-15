@@ -40,7 +40,7 @@ export type LoginCommandOutput = {
  * ログインごとに**新しいセッションを採番する**のが refresh との違い。
  * 据え置くと更新のたびにログアウトの単位が変わる。
  */
-export const createLoginCommand =
+export const loginCommand =
   (deps: {
     readonly verifyCredentialsQueryService: VerifyCredentialsQueryService;
     readonly refreshTokenRepository: RefreshTokenRepository;

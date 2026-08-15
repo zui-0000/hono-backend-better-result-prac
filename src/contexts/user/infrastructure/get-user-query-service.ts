@@ -14,7 +14,7 @@ import { tUser } from "./drizzle-schema";
  * (**ドメインを一切 import しないのが Query 側の実装の特徴**)。
  * 必要な列だけを取るので、集約の全列を読む Repository より素直かつ軽い。
  */
-export const createGetUserQueryService = (
+export const getUserQueryService = (
   db: Database,
 ): GetUserQueryService => ({
   execute: async ({ id }) =>

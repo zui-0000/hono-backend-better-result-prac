@@ -4,16 +4,16 @@ import { Result } from "better-result";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, headers, makeUser, OTHER_UUID } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createDeleteUserController } from "../delete-user-controller";
+import { deleteUserController } from "../delete-user-controller";
 
 const del = async (deps: AppDeps, id: string = FIXED_UUID): Promise<Response> =>
-  await createApp(deps).request(`/users/${id}`, { method: "DELETE", headers });
+  await app(deps).request(`/users/${id}`, { method: "DELETE", headers });
 
-describe(createDeleteUserController.name, () => {
+describe(deleteUserController.name, () => {
   test("204 を返し、その id で削除すること", async () => {
     const deleted: string[] = [];
     const deps = makeDeps({

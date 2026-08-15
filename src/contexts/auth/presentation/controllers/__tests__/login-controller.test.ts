@@ -13,7 +13,7 @@ import {
   OTHER_UUID,
   setCookieOf,
 } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import type { RefreshToken } from "~/contexts/auth/domain/model/refresh-token";
 import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/refresh-token-hash";
@@ -21,7 +21,7 @@ import { UserId } from "~/contexts/user/domain/model/value-objects/user-id";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createLoginController } from "../login-controller";
+import { loginController } from "../login-controller";
 
 const VALID = { mailAddress: "existing@example.com", password: "password1234" };
 
@@ -29,13 +29,13 @@ const login = async (
   deps: AppDeps,
   body: Record<string, unknown> = VALID,
 ): Promise<Response> =>
-  await createApp(deps).request("/auth/login", {
+  await app(deps).request("/auth/login", {
     method: "POST",
     headers,
     body: JSON.stringify(body),
   });
 
-describe(createLoginController.name, () => {
+describe(loginController.name, () => {
   test("照合できれば 200。券は本文と Cookie に振り分けること", async () => {
     const created: RefreshToken[] = [];
     const claims: { sub: string; sid: string }[] = [];

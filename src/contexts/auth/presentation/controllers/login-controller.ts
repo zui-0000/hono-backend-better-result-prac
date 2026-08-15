@@ -6,7 +6,7 @@ import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
-  createLoginCommand,
+  loginCommand,
   LoginCommandInput,
 } from "../../application/login-command";
 import type { AuthDeps } from "../../auth-deps";
@@ -21,8 +21,8 @@ type Input = { readonly body: z.infer<typeof LoginBody> };
  * リフレッシュトークンは HttpOnly Cookie。後者を本文に載せると JS から読めてしまい、
  * XSS を踏んだ瞬間に 2 週間有効な券が漏れる。
  */
-export const createLoginController = (deps: AuthDeps) => {
-  const command = createLoginCommand(deps);
+export const loginController = (deps: AuthDeps) => {
+  const command = loginCommand(deps);
   return async ({ body }: Input) =>
     await Result.gen(async function* () {
       const input = yield* decodeInput(LoginCommandInput)(body);

@@ -4,14 +4,14 @@ import { Result } from "better-result";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, headers, makeUser, OTHER_UUID } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import type { User } from "~/contexts/user/domain/model/user";
 import { UserName } from "~/contexts/user/domain/model/value-objects/user-name";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createUpdateUserController } from "../update-user-controller";
+import { updateUserController } from "../update-user-controller";
 
 const VALID = { name: "更新後", mailAddress: "updated@example.com" };
 
@@ -20,13 +20,13 @@ const put = async (
   id: string = FIXED_UUID,
   body: Record<string, unknown> = VALID,
 ): Promise<Response> =>
-  await createApp(deps).request(`/users/${id}`, {
+  await app(deps).request(`/users/${id}`, {
     method: "PUT",
     headers,
     body: JSON.stringify(body),
   });
 
-describe(createUpdateUserController.name, () => {
+describe(updateUserController.name, () => {
   test("204 を返し、updatedAt だけ進んで createdAt は据え置くこと", async () => {
     const updated: User[] = [];
     const deps = makeDeps({

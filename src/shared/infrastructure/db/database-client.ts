@@ -7,7 +7,7 @@ import { drizzle } from "drizzle-orm/bun-sql";
  * 設定漏れが「起動しない」ではなく「**別の DB に繋がる**」に化ける。
  * だから起動時に読んで検証しきる (`main.ts`)。
  */
-export const createDatabase = (url: string) => drizzle(url);
+export const database = (url: string) => drizzle(url);
 
 /**
  * Drizzle のクライアント。アダプタはこの型だけを知る (ドライバは隠す)。
@@ -15,9 +15,9 @@ export const createDatabase = (url: string) => drizzle(url);
  * `BunSQLDatabase` を直に書かないのは、`$client` (接続を閉じる口) が
  * `drizzle()` の戻り値にしか生えていないため。
  */
-export type Database = ReturnType<typeof createDatabase>;
+export type Database = ReturnType<typeof database>;
 
 /** 接続を閉じる (終了時)。 */
-export const closeDatabase = async (database: Database): Promise<void> => {
-  await database.$client.close();
+export const closeDatabase = async (db: Database): Promise<void> => {
+  await db.$client.close();
 };

@@ -6,7 +6,7 @@ import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claim
 import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import { createGetUserQuery } from "../../application/get-user-query";
+import { getUserQuery } from "../../application/get-user-query";
 import { GetUserQueryInput } from "../../application/get-user-query";
 import type { UserDeps } from "../../user-deps";
 
@@ -16,8 +16,8 @@ type Input = {
 };
 
 /** ID を指定してユーザーを取得する (GET /users/{id})。 */
-export const createGetUserController = (deps: UserDeps) => {
-  const query = createGetUserQuery(deps);
+export const getUserController = (deps: UserDeps) => {
+  const query = getUserQuery(deps);
   return async ({ auth, params }: Input) =>
     await Result.gen(async function* () {
       const input = yield* decodeInput(GetUserQueryInput)({

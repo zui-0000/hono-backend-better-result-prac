@@ -31,7 +31,7 @@ export type DeleteUserCommandInput = z.infer<typeof DeleteUserCommandInput>;
  * 券に FK が張られていないので、DB は後始末をしてくれない
  * (auth/infrastructure/drizzle-schema.ts に理由がある)。**塞ぐのはここ。**
  */
-export const createDeleteUserCommand =
+export const deleteUserCommand =
   (deps: {
     readonly userRepository: UserRepository;
     readonly sessionRevoker: SessionRevoker;

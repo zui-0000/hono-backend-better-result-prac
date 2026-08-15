@@ -10,7 +10,7 @@ import {
   makeUser,
   OTHER_UUID,
 } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import type { User } from "~/contexts/user/domain/model/user";
 import { UserHashedPassword } from "~/contexts/user/domain/model/value-objects/user-hashed-password";
@@ -19,7 +19,7 @@ import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createCreateUserController } from "../create-user-controller";
+import { createUserController } from "../create-user-controller";
 
 const VALID = {
   name: "テスト太郎",
@@ -31,13 +31,13 @@ const post = async (
   deps: AppDeps,
   body: Record<string, unknown> = VALID,
 ): Promise<Response> =>
-  await createApp(deps).request("/users", {
+  await app(deps).request("/users", {
     method: "POST",
     headers,
     body: JSON.stringify(body),
   });
 
-describe(createCreateUserController.name, () => {
+describe(createUserController.name, () => {
   describe("正常系", () => {
     test("201 と採番した id を返し、ハッシュ済みで保存すること", async () => {
       const created: User[] = [];
@@ -95,7 +95,7 @@ describe(createCreateUserController.name, () => {
     test("ボディがオブジェクトですらない場合、field が空にならないこと", async () => {
       // path が取れないときに空文字を返すと、field が必須項目なのに
       // 「どこが悪いか」を何も伝えない値になる。
-      const response = await createApp(makeDeps()).request("/users", {
+      const response = await app(makeDeps()).request("/users", {
         method: "POST",
         headers,
         body: JSON.stringify("これはオブジェクトですらない"),

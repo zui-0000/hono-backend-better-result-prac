@@ -7,7 +7,7 @@ import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
-  createUpdateUserCommand,
+  updateUserCommand,
   UpdateUserCommandInput,
 } from "../../application/update-user-command";
 import type { UserDeps } from "../../user-deps";
@@ -19,8 +19,8 @@ type Input = {
 };
 
 /** ユーザーを更新する (PUT /users/{id})。 */
-export const createUpdateUserController = (deps: UserDeps) => {
-  const command = createUpdateUserCommand(deps);
+export const updateUserController = (deps: UserDeps) => {
+  const command = updateUserCommand(deps);
   return async ({ auth, body, params }: Input) =>
     await Result.gen(async function* () {
       const input = yield* decodeInput(UpdateUserCommandInput)({

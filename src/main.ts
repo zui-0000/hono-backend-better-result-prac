@@ -1,8 +1,8 @@
-import { createApp } from "~/app";
-import { createAppDeps } from "~/app-deps";
-import { createJwtAccessTokenIssuer } from "~/shared/infrastructure/access-token-issuer";
+import { app } from "~/app";
+import { appDeps } from "~/app-deps";
+import { jwtAccessTokenIssuer } from "~/shared/infrastructure/access-token-issuer";
 import { readCookieSettings } from "~/shared/infrastructure/cookie-settings";
-import { createDatabase } from "~/shared/infrastructure/db/database-client";
+import { database } from "~/shared/infrastructure/db/database-client";
 
 /**
  * エントリ。**設定は起動時に読みきる。**
@@ -20,11 +20,11 @@ const requireEnv = (name: string): string => {
   return value;
 };
 
-const deps = createAppDeps({
-  db: createDatabase(requireEnv("DATABASE_URL")),
+const deps = appDeps({
+  db: database(requireEnv("DATABASE_URL")),
   // 鍵の長さ検証はここで走る (短ければ throw する)。
-  accessTokenIssuer: createJwtAccessTokenIssuer(requireEnv("JWT_SECRET")),
+  accessTokenIssuer: jwtAccessTokenIssuer(requireEnv("JWT_SECRET")),
   cookieSettings: readCookieSettings(process.env),
 });
 
-export default createApp(deps);
+export default app(deps);

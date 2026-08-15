@@ -4,17 +4,17 @@ import { Result } from "better-result";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, headers, OTHER_UUID } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createGetUserController } from "../get-user-controller";
+import { getUserController } from "../get-user-controller";
 
 const get = async (deps: AppDeps, id: string = FIXED_UUID): Promise<Response> =>
-  await createApp(deps).request(`/users/${id}`, { headers });
+  await app(deps).request(`/users/${id}`, { headers });
 
-describe(createGetUserController.name, () => {
+describe(getUserController.name, () => {
   test("本人なら 200 と射影を返すこと", async () => {
     const deps = makeDeps({
       getUserQueryService: {

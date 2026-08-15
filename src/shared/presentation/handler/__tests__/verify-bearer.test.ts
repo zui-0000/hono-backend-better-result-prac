@@ -4,7 +4,7 @@ import { Result } from "better-result";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FAKE_ACCESS_TOKEN, REQUEST_ID } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { HttpHeader } from "~/shared/presentation/constants/http-header";
@@ -18,7 +18,7 @@ const get = async (
   authorization?: string,
   deps = makeDeps(),
 ): Promise<Response> =>
-  await createApp(deps).request(AUTHED_PATH, {
+  await app(deps).request(AUTHED_PATH, {
     headers: {
       [HttpHeader.RequestId]: REQUEST_ID,
       ...(authorization === undefined
@@ -55,7 +55,7 @@ describe(verifyBearer.name, () => {
   test("認証は契約検証より先に走ること", async () => {
     // 通っていない相手には契約の話を一切しない (400 の errors は
     // フィールド名と制約をそのまま返すため)。
-    const response = await createApp(makeDeps()).request("/users/not-a-uuid", {
+    const response = await app(makeDeps()).request("/users/not-a-uuid", {
       headers: { [HttpHeader.RequestId]: REQUEST_ID },
     });
 

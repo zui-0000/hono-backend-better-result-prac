@@ -30,7 +30,7 @@ export type UpdateUserCommandInput = z.infer<typeof UpdateUserCommandInput>;
  * 重複検証で `excluding` に自分を渡すのは、**メールアドレスを変えない更新が
  * 常に 409 になる**のを防ぐため。
  */
-export const createUpdateUserCommand =
+export const updateUserCommand =
   (deps: { readonly userRepository: UserRepository; readonly clock: Clock }) =>
   async (
     input: UpdateUserCommandInput,

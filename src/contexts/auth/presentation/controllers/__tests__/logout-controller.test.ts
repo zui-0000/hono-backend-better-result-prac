@@ -10,12 +10,12 @@ import {
   REQUEST_ID,
   setCookieOf,
 } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import { HttpHeader } from "~/shared/presentation/constants/http-header";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createLogoutController } from "../logout-controller";
+import { logoutController } from "../logout-controller";
 
 type Revoked = { readonly sessionId: string; readonly revokedAt: Date };
 
@@ -41,12 +41,12 @@ const logout = async (
   deps: AppDeps,
   requestHeaders: Record<string, string> = headers,
 ): Promise<Response> =>
-  await createApp(deps).request("/auth/logout", {
+  await app(deps).request("/auth/logout", {
     method: "POST",
     headers: requestHeaders,
   });
 
-describe(createLogoutController.name, () => {
+describe(logoutController.name, () => {
   test("204 を返し、その sid でセッションを切ること", async () => {
     const { deps, revoked } = recording();
 

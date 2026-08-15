@@ -34,7 +34,7 @@ export type CreateUserCommandOutput = { readonly id: UserId };
  * ハッシュ結果の `UserHashedPassword` への変換で throw するのは、**失敗したら
  * ハッシュ実装が壊れている**ということだから (握り潰すと平文が入りうる)。
  */
-export const createCreateUserCommand =
+export const createUserCommand =
   (deps: {
     readonly userRepository: UserRepository;
     readonly passwordHasher: PasswordHasher;

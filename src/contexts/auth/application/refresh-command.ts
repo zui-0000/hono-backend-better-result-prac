@@ -83,7 +83,7 @@ const rotate = async (
  * 状態ごとの分岐を **switch にして網羅を型に見張らせる** — 「どれでもなければ
  * 差し替える」と書くと、新しい状態が黙って通ってしまう (Revoked を足したとき実際に起きた)。
  */
-export const createRefreshCommand =
+export const refreshCommand =
   (deps: RefreshCommandDeps) =>
   async (
     input: RefreshCommandInput,

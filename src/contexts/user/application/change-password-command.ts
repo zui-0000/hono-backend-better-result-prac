@@ -50,7 +50,7 @@ export type ChangePasswordCommandInput = z.infer<
  * 盗まれた券が生き残り、しかも再試行できない (currentPassword が既に古く 401 になる)。
  * この順なら失敗しても他端末がログアウトされるだけで、パスワードは元のまま入り直せる。
  */
-export const createChangePasswordCommand =
+export const changePasswordCommand =
   (deps: {
     readonly userRepository: UserRepository;
     readonly passwordHasher: PasswordHasher;

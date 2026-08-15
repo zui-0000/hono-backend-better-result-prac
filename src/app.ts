@@ -18,16 +18,18 @@ import type { AppDeps } from "./app-deps";
  * middleware は 1 枚だけ。相関 ID は**経路にマッチしなかったリクエストにも要る**ため、
  * 経路ごとの handleWithResult では覆えない。認証と契約検証は経路ごとに要否が変わる。
  */
-export const createApp = (deps: AppDeps) => {
-  const app = new Hono<RequestIdEnv>();
+export const app = (deps: AppDeps) => {
+  // 組み立て関数と同じ名前にできないので routes と呼ぶ
+  // (*-routes.ts も中では同じ名前を使っている)。
+  const routes = new Hono<RequestIdEnv>();
 
-  app.use("*", resolveRequestId(deps));
-  app.notFound(handleNotFound);
+  routes.use("*", resolveRequestId(deps));
+  routes.notFound(handleNotFound);
 
-  app.get("/health", (c) => c.json({ status: "ok" }));
+  routes.get("/health", (c) => c.json({ status: "ok" }));
 
-  app.route("/users", userRoutes(deps));
-  app.route("/auth", authRoutes(deps));
+  routes.route("/users", userRoutes(deps));
+  routes.route("/auth", authRoutes(deps));
 
-  return app;
+  return routes;
 };

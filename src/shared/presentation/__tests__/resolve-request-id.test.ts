@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, REQUEST_ID } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import { HttpHeader } from "~/shared/presentation/constants/http-header";
 
 import { resolveRequestId } from "../resolve-request-id";
@@ -10,7 +10,7 @@ import { resolveRequestId } from "../resolve-request-id";
 const health = async (
   requestHeaders: Record<string, string> = {},
 ): Promise<Response> =>
-  await createApp(makeDeps()).request("/health", { headers: requestHeaders });
+  await app(makeDeps()).request("/health", { headers: requestHeaders });
 
 describe(resolveRequestId.name, () => {
   test("受け取った相関 ID をそのまま応答に載せること", async () => {

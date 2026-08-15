@@ -18,7 +18,7 @@ export type LogoutCommandInput = z.infer<typeof LogoutCommandInput>;
  *
  * 失効時刻は Clock から取る (DB の now() に任せない)。
  */
-export const createLogoutCommand =
+export const logoutCommand =
   (deps: {
     readonly refreshTokenRepository: RefreshTokenRepository;
     readonly clock: Clock;

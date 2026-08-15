@@ -16,7 +16,7 @@ const restoreRefreshToken = (
   return row === undefined ? undefined : RefreshToken.parse(row);
 };
 
-export const createRefreshTokenRepository = (
+export const refreshTokenRepository = (
   db: Database,
 ): RefreshTokenRepository => ({
   create: async (token) =>

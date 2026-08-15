@@ -36,7 +36,7 @@ export type GetUserQueryInput = z.infer<typeof GetUserQueryInput>;
  * **1 が 2 より先。** 他人の id を指定されたとき **DB を引かずに落ちる** —
  * 「認可の失敗は対象の有無に関わらず 403」がそのまま順序に現れている。
  */
-export const createGetUserQuery =
+export const getUserQuery =
   (deps: { readonly getUserQueryService: GetUserQueryService }) =>
   async (
     input: GetUserQueryInput,

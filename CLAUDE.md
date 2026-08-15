@@ -15,7 +15,7 @@ DI コンテナは置かない。TypeScript は引数を渡すだけで足りる
 
 ```ts
 // ユースケース (application) … ファクトリで依存を先に食わせる
-export const createGetUserQuery =
+export const getUserQuery =
   (deps: { readonly getUserQueryService: GetUserQueryService }) =>
   async (input: GetUserQueryInput) => { ... };
 
@@ -49,15 +49,22 @@ infrastructure/clock.ts  const clock             ← 実装
 実装名に技術名（`bunXxx` など）を付けない。**差し替え候補が実在しないうちは
 先回りで名前を付けない** — 2 つ目が出たときに名前を付ける。
 
-引数が要るものだけ動詞にする。
+**`create` はドメインの生成だけに使う。** 配線のための組み立てには付けない。
 
-| 形               | 意味                   | 例                         |
-| ---------------- | ---------------------- | -------------------------- |
-| `xxx`            | 引数の要らない単体     | `clock` / `passwordHasher` |
-| `createXxx(...)` | 何かを食って組み立てる | `createUserRepository(db)` |
-| `readXxx(...)`   | 環境から読む           | `readCookieSettings(env)`  |
+| 形               | 意味                   | 例                                          |
+| ---------------- | ---------------------- | ------------------------------------------- |
+| `xxx`            | 引数の要らない実装     | `clock` / `passwordHasher`                  |
+| `xxx(...)`       | 依存を食って組み立てる | `userRepository(db)` / `getUserQuery(deps)` |
+| `createXxx(...)` | **集約を新しく作る**   | `createUser(deps, params)`                  |
+| `readXxx(...)`   | 環境から読む           | `readCookieSettings(env)`                   |
 
-合成ルートでは形の違いがそのまま出る（前者は shorthand、後者は呼び出し）。
+以前は組み立てにも `create` を付けていたが、**動詞が業務語彙と技術語彙の両方を
+指してしまう**ので外した（`createCreateUserCommand` のような二重が生まれていた）。
+いま `create` を見たら、それは**集約が 1 つ生まれる**という意味になる。
+
+引き換えに、合成ルートでは**組み立て関数と出来上がりが同名になる**。
+`const userRepository = userRepository(db)` は書けないので、2 度使うものだけ
+局所名を集合名にしてある（`src/app-deps.ts` の `users` / `refreshTokens`）。
 
 ### エクスポート名
 

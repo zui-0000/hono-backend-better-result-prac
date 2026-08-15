@@ -11,14 +11,14 @@ import {
   makeUser,
   OTHER_UUID,
 } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import type { User } from "~/contexts/user/domain/model/user";
 import { UserHashedPassword } from "~/contexts/user/domain/model/value-objects/user-hashed-password";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createChangePasswordController } from "../change-password-controller";
+import { changePasswordController } from "../change-password-controller";
 
 const VALID = {
   currentPassword: "currentpass1234",
@@ -26,13 +26,13 @@ const VALID = {
 };
 
 const put = async (deps: AppDeps, id: string = FIXED_UUID): Promise<Response> =>
-  await createApp(deps).request(`/users/${id}/password`, {
+  await app(deps).request(`/users/${id}/password`, {
     method: "PUT",
     headers,
     body: JSON.stringify(VALID),
   });
 
-describe(createChangePasswordController.name, () => {
+describe(changePasswordController.name, () => {
   test("204 を返し、変わるのはハッシュと updatedAt だけであること", async () => {
     const updated: User[] = [];
     const deps = makeDeps({

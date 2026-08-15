@@ -1,10 +1,10 @@
 import type { AuthDeps } from "~/contexts/auth/auth-deps";
 import { refreshTokenIssuer } from "~/contexts/auth/infrastructure/refresh-token-issuer";
-import { createRefreshTokenRepository } from "~/contexts/auth/infrastructure/refresh-token-repository";
-import { createSessionRevoker } from "~/contexts/auth/infrastructure/session-revoker";
-import { createGetUserQueryService } from "~/contexts/user/infrastructure/get-user-query-service";
-import { createUserRepository } from "~/contexts/user/infrastructure/user-repository";
-import { createVerifyCredentialsQueryService } from "~/contexts/user/infrastructure/verify-credentials-query-service";
+import { refreshTokenRepository } from "~/contexts/auth/infrastructure/refresh-token-repository";
+import { sessionRevoker } from "~/contexts/auth/infrastructure/session-revoker";
+import { getUserQueryService } from "~/contexts/user/infrastructure/get-user-query-service";
+import { userRepository } from "~/contexts/user/infrastructure/user-repository";
+import { verifyCredentialsQueryService } from "~/contexts/user/infrastructure/verify-credentials-query-service";
 import type { UserDeps } from "~/contexts/user/user-deps";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import type { CookieSettings } from "~/shared/domain/cookie-settings";
@@ -28,31 +28,37 @@ import { uuidGenerator } from "~/shared/infrastructure/uuid-generator";
  */
 export type AppDeps = UserDeps & AuthDeps;
 
-export const createAppDeps = (params: {
+export const appDeps = (params: {
   readonly db: Database;
   readonly accessTokenIssuer: AccessTokenIssuer;
   readonly cookieSettings: CookieSettings;
 }): AppDeps => {
-  const userRepository = createUserRepository(params.db);
-  const refreshTokenRepository = createRefreshTokenRepository(params.db);
+  // **局所名だけ集合名にしてある。** 組み立て関数から create を外した結果、
+  // 関数と出来上がりが同名になり `const userRepository = userRepository(db)` が
+  // 書けなくなったため。2 度使うものだけがここに出る (残りは下で直接呼ぶ)。
+  const users = userRepository(params.db);
+  const refreshTokens = refreshTokenRepository(params.db);
 
   return {
     // --- user ---
-    userRepository,
-    getUserQueryService: createGetUserQueryService(params.db),
+    userRepository: users,
+    getUserQueryService: getUserQueryService(params.db),
 
     // --- user が auth へ公開している面 (Customer/Supplier) ---
-    verifyCredentialsQueryService: createVerifyCredentialsQueryService({
-      userRepository,
+    verifyCredentialsQueryService: verifyCredentialsQueryService({
+      userRepository: users,
       passwordHasher,
     }),
 
     // --- auth ---
-    refreshTokenRepository,
+    refreshTokenRepository: refreshTokens,
     refreshTokenIssuer,
 
     // --- auth が user へ公開している面 (Customer/Supplier の逆向き) ---
-    sessionRevoker: createSessionRevoker({ refreshTokenRepository, clock }),
+    sessionRevoker: sessionRevoker({
+      refreshTokenRepository: refreshTokens,
+      clock,
+    }),
 
     // --- 横断 ---
     // params 経由の 2 つは、起動時に環境変数を読んで組み立てたもの (main.ts)。

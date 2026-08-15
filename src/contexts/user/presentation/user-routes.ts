@@ -18,11 +18,11 @@ import { handleWithResult } from "~/shared/presentation/handle-with-result";
 import type { RequestIdEnv } from "~/shared/presentation/resolve-request-id";
 
 import type { UserDeps } from "../user-deps";
-import { createChangePasswordController } from "./controllers/change-password-controller";
-import { createCreateUserController } from "./controllers/create-user-controller";
-import { createDeleteUserController } from "./controllers/delete-user-controller";
-import { createGetUserController } from "./controllers/get-user-controller";
-import { createUpdateUserController } from "./controllers/update-user-controller";
+import { changePasswordController } from "./controllers/change-password-controller";
+import { createUserController } from "./controllers/create-user-controller";
+import { deleteUserController } from "./controllers/delete-user-controller";
+import { getUserController } from "./controllers/get-user-controller";
+import { updateUserController } from "./controllers/update-user-controller";
 
 /**
  * user コンテキストの HTTP 経路。パスは TypeSpec の `@route` と対応する。
@@ -42,7 +42,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
     "/",
     handleWithResult({
       request: { header: CreateUserHeader, body: CreateUserBody },
-      controller: createCreateUserController(deps),
+      controller: createUserController(deps),
     })(deps),
   );
 
@@ -51,7 +51,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
     handleWithResult({
       auth: true,
       request: { header: GetUserHeader, params: GetUserParams },
-      controller: createGetUserController(deps),
+      controller: getUserController(deps),
     })(deps),
   );
 
@@ -64,7 +64,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
         body: UpdateUserBody,
         params: UpdateUserParams,
       },
-      controller: createUpdateUserController(deps),
+      controller: updateUserController(deps),
     })(deps),
   );
 
@@ -77,7 +77,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
         body: ChangePasswordBody,
         params: ChangePasswordParams,
       },
-      controller: createChangePasswordController(deps),
+      controller: changePasswordController(deps),
     })(deps),
   );
 
@@ -86,7 +86,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
     handleWithResult({
       auth: true,
       request: { header: DeleteUserHeader, params: DeleteUserParams },
-      controller: createDeleteUserController(deps),
+      controller: deleteUserController(deps),
     })(deps),
   );
 

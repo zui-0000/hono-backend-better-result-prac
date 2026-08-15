@@ -7,7 +7,7 @@ import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
-  createDeleteUserCommand,
+  deleteUserCommand,
   DeleteUserCommandInput,
 } from "../../application/delete-user-command";
 import type { UserDeps } from "../../user-deps";
@@ -18,8 +18,8 @@ type Input = {
 };
 
 /** ユーザーを削除する (DELETE /users/{id})。 */
-export const createDeleteUserController = (deps: UserDeps) => {
-  const command = createDeleteUserCommand(deps);
+export const deleteUserController = (deps: UserDeps) => {
+  const command = deleteUserCommand(deps);
   return async ({ auth, params }: Input) =>
     await Result.gen(async function* () {
       const input = yield* decodeInput(DeleteUserCommandInput)({

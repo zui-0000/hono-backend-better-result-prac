@@ -24,9 +24,7 @@ const MINIMUM_SECRET_LENGTH = 32;
  * **鍵の検証は生成時に行い、短ければ throw する。** 空の鍵で署名し続けると
  * 誰でも偽造できるトークンを発行しながら正常に見えるので、起動しないほうがまし。
  */
-export const createJwtAccessTokenIssuer = (
-  secret: string,
-): AccessTokenIssuer => {
+export const jwtAccessTokenIssuer = (secret: string): AccessTokenIssuer => {
   if (secret.length < MINIMUM_SECRET_LENGTH) {
     throw new Error(
       `JWT_SECRET が短すぎます (${secret.length} 文字)。` +

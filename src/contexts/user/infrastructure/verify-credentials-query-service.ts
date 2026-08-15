@@ -20,7 +20,7 @@ import type { VerifyCredentialsQueryService } from "../public/verify-credentials
  * それはバグ。畳んで 401 にすると**正しいパスワードで入れないのに通常の認証失敗と
  * 見分けがつかない**状態になる。
  */
-export const createVerifyCredentialsQueryService = (deps: {
+export const verifyCredentialsQueryService = (deps: {
   readonly userRepository: UserRepository;
   readonly passwordHasher: PasswordHasher;
 }): VerifyCredentialsQueryService => ({

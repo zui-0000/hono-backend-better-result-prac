@@ -43,7 +43,7 @@ const restoreUser = (
   return row === undefined ? undefined : User.parse(row);
 };
 
-export const createUserRepository = (db: Database): UserRepository => ({
+export const userRepository = (db: Database): UserRepository => ({
   create: async (user) =>
     (
       await Result.tryPromise(() =>

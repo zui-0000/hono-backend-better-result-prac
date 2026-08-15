@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, headers, makeUser, REQUEST_ID } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpHeader } from "~/shared/presentation/constants/http-header";
@@ -22,7 +22,7 @@ describe(handleWithResult.name, () => {
       },
     });
 
-    const response = await createApp(deps).request(`/users/${FIXED_UUID}`, {
+    const response = await app(deps).request(`/users/${FIXED_UUID}`, {
       headers,
     });
 
@@ -48,7 +48,7 @@ describe(handleWithResult.name, () => {
       },
     });
 
-    const response = await createApp(deps).request(`/users/${FIXED_UUID}`, {
+    const response = await app(deps).request(`/users/${FIXED_UUID}`, {
       headers,
     });
 
@@ -63,7 +63,7 @@ describe(handleWithResult.name, () => {
       },
     });
 
-    const response = await createApp(deps).request(`/users/${FIXED_UUID}`, {
+    const response = await app(deps).request(`/users/${FIXED_UUID}`, {
       method: "DELETE",
       headers,
     });

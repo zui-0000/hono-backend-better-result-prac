@@ -16,7 +16,7 @@ import {
   setCookieOf,
   withRefreshCookie,
 } from "~/__mocks__/data";
-import { createApp } from "~/app";
+import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import {
   type RefreshToken,
@@ -27,7 +27,7 @@ import { ErrorCode } from "~/shared/presentation/constants/error-code";
 import { ErrorTitle } from "~/shared/presentation/constants/error-title";
 import { HttpStatus } from "~/shared/presentation/constants/http-status";
 
-import { createRefreshController } from "../refresh-controller";
+import { refreshController } from "../refresh-controller";
 
 /** 差し替え後の券。提示した券と区別できるよう別の値にする。 */
 const NEXT_REFRESH_TOKEN = "rt_next-refresh-token-after-rotation-0123456789";
@@ -38,7 +38,7 @@ const refresh = async (
   deps: AppDeps,
   refreshToken: string = FAKE_REFRESH_TOKEN,
 ): Promise<Response> =>
-  await createApp(deps).request("/auth/refresh", {
+  await app(deps).request("/auth/refresh", {
     method: "POST",
     headers: withRefreshCookie(refreshToken),
   });
@@ -99,7 +99,7 @@ const recording = (
 const secondsBefore = (seconds: number): Date =>
   new Date(FIXED_NOW.getTime() - seconds * 1000);
 
-describe(createRefreshController.name, () => {
+describe(refreshController.name, () => {
   describe("正常系", () => {
     test("使える券なら 200。本文は accessToken だけで、券は Cookie で差し替わること", async () => {
       const stored = makeStored();
@@ -233,7 +233,7 @@ describe(createRefreshController.name, () => {
 
     test("Cookie が無ければ 400", async () => {
       // 「券が無い」は形式の話なので 400。401 にすると認証の失敗と区別がつかない。
-      const response = await createApp(makeDeps()).request("/auth/refresh", {
+      const response = await app(makeDeps()).request("/auth/refresh", {
         method: "POST",
         headers,
       });

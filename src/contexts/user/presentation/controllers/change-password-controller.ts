@@ -11,7 +11,7 @@ import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
   ChangePasswordCommandInput,
-  createChangePasswordCommand,
+  changePasswordCommand,
 } from "../../application/change-password-command";
 import type { UserDeps } from "../../user-deps";
 
@@ -22,8 +22,8 @@ type Input = {
 };
 
 /** パスワードを変更する (PUT /users/{id}/password)。 */
-export const createChangePasswordController = (deps: UserDeps) => {
-  const command = createChangePasswordCommand(deps);
+export const changePasswordController = (deps: UserDeps) => {
+  const command = changePasswordCommand(deps);
   return async ({ auth, body, params }: Input) =>
     await Result.gen(async function* () {
       const input = yield* decodeInput(ChangePasswordCommandInput)({

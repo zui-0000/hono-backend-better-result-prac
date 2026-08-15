@@ -5,7 +5,7 @@ import { decodeInput } from "~/shared/presentation/decode-input";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
-  createRefreshCommand,
+  refreshCommand,
   RefreshCommandInput,
 } from "../../application/refresh-command";
 import type { AuthDeps } from "../../auth-deps";
@@ -24,8 +24,8 @@ type Input = { readonly cookie: RefreshCookie };
  * クライアントの JS は `credentials: 'include'` を付ける以外に何もしない。
  * ローテーションで発行した新しい券も同じ名前を上書きして返す。
  */
-export const createRefreshController = (deps: AuthDeps) => {
-  const command = createRefreshCommand(deps);
+export const refreshController = (deps: AuthDeps) => {
+  const command = refreshCommand(deps);
   return async ({ cookie }: Input) =>
     await Result.gen(async function* () {
       const input = yield* decodeInput(RefreshCommandInput)({
