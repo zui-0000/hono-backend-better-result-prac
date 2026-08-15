@@ -4,7 +4,7 @@ import type { Clock } from "~/shared/domain/clock";
 import type { PasswordHasher } from "~/shared/domain/password-hasher";
 import type { UuidGenerator } from "~/shared/domain/uuid-generator";
 
-import type { GetUserQueryService } from "./application/get-user-query-service";
+import type { GetUserQueryService } from "./application/get-user-query";
 import type { UserRepository } from "./domain/user-repository";
 
 /**

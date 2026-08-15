@@ -5,7 +5,7 @@ import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/ref
 import type { RefreshTokenIssuer } from "~/contexts/auth/domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "~/contexts/auth/domain/refresh-token-repository";
 import type { SessionRevoker } from "~/contexts/auth/public/session-revoker";
-import type { GetUserQueryService } from "~/contexts/user/application/get-user-query-service";
+import type { GetUserQueryService } from "~/contexts/user/application/get-user-query";
 import type { UserRepository } from "~/contexts/user/domain/user-repository";
 import type { VerifyCredentialsQueryService } from "~/contexts/user/public/verify-credentials-query-service";
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
@@ -24,7 +24,7 @@ import {
 /**
  * API テスト用の依存一式。**本番の実装の代わりに偽物を束ねる。**
  *
- * `createApp` は依存を引数で受け取るので、これを渡すだけで
+ * `app` は依存を引数で受け取るので、これを渡すだけで
  * 「リクエスト → 契約検証 → controller → command → ドメイン → 応答」までを
  * DB を起動せず、かつ決定的 (採番と時刻が固定) に検証できる。
  *

@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import type { Database } from "~/shared/infrastructure/db/database-client";
 import { handleDbError } from "~/shared/infrastructure/db/error/handle-db-error";
 
-import type { GetUserQueryService } from "../application/get-user-query-service";
+import type { GetUserQueryService } from "../application/get-user-query";
 import { tUser } from "./drizzle-schema";
 
 /**
@@ -14,9 +14,7 @@ import { tUser } from "./drizzle-schema";
  * (**ドメインを一切 import しないのが Query 側の実装の特徴**)。
  * 必要な列だけを取るので、集約の全列を読む Repository より素直かつ軽い。
  */
-export const getUserQueryService = (
-  db: Database,
-): GetUserQueryService => ({
+export const getUserQueryService = (db: Database): GetUserQueryService => ({
   execute: async ({ id }) =>
     (
       await Result.tryPromise(() =>

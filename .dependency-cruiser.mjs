@@ -217,7 +217,7 @@ export default {
           "クエリと名乗るモジュールから書き込みができてしまいます。",
         fix:
           "必要な項目だけを持つ射影の型を query-service 側に定義し、\n" +
-          "SELECT でその形を直接作ります (contexts/user/application/get-user-query-service.ts の\n" +
+          "SELECT でその形を直接作ります (contexts/user/application/get-user-query.ts の\n" +
           "GetUserQueryOutput と、その実装 infrastructure/get-user-query-service.ts)。\n" +
           "値オブジェクト (domain/model/value-objects/) とドメインサービス\n" +
           "(domain/services/) は許可しています。前者は語彙、後者は認可などの判定で、\n" +
