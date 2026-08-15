@@ -16,6 +16,11 @@ export const DeleteUserCommandInput = z.object({
 });
 export type DeleteUserCommandInput = z.infer<typeof DeleteUserCommandInput>;
 
+export type DeleteUserCommandError =
+  | ForbiddenError
+  | ResourceNotFoundError
+  | RepositoryError;
+
 /**
  * ユーザーを削除する。
  *
@@ -37,9 +42,7 @@ export const deleteUserCommand =
   }) =>
   async (
     input: DeleteUserCommandInput,
-  ): Promise<
-    Result<void, ForbiddenError | ResourceNotFoundError | RepositoryError>
-  > =>
+  ): Promise<Result<void, DeleteUserCommandError>> =>
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 

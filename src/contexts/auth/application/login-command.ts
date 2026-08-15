@@ -13,9 +13,6 @@ import { SessionId } from "../domain/model/value-objects/session-id";
 import type { RefreshTokenIssuer } from "../domain/refresh-token-issuer";
 import type { RefreshTokenRepository } from "../domain/refresh-token-repository";
 
-/**
- * ログインの入力。契約の LoginRequest と 1 対 1。
- */
 export const LoginCommandInput = z.object({
   mailAddress: z.string(),
   password: z.string(),
@@ -27,11 +24,10 @@ export type LoginCommandOutput = {
   readonly refreshToken: string;
 };
 
+export type LoginCommandError = UnauthorizedError | RepositoryError;
+
 /**
  * メールアドレスとパスワードで券を発行する。
- *
- * user が公開している `VerifyCredentialsQueryService`
- * だけを使い、`UserRepository` には触れない (触ると create / deleteById まで握る)。
  *
  * ログインごとに**新しいセッションを採番する**のが refresh との違い。
  * 据え置くと更新のたびにログアウトの単位が変わる。
@@ -47,7 +43,7 @@ export const loginCommand =
   }) =>
   async (
     input: LoginCommandInput,
-  ): Promise<Result<LoginCommandOutput, UnauthorizedError | RepositoryError>> =>
+  ): Promise<Result<LoginCommandOutput, LoginCommandError>> =>
     await Result.gen(async function* () {
       // 「居ない」と「合わない」は user 側 (verifyCredentials) で既に undefined へ
       // 畳まれている。**ここに届く時点で分岐する材料が無い**ので、畳まれたまま 401 へ。

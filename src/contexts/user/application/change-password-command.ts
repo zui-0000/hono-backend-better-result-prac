@@ -35,6 +35,12 @@ export type ChangePasswordCommandInput = z.infer<
   typeof ChangePasswordCommandInput
 >;
 
+export type ChangePasswordCommandError =
+  | ForbiddenError
+  | ResourceNotFoundError
+  | PasswordMismatchError
+  | RepositoryError;
+
 /**
  * パスワードを変更する。
  * 認可 → 引き当て → **現在のパスワードを確認** → 他端末を切る → 差し替え。
@@ -58,15 +64,7 @@ export const changePasswordCommand =
   }) =>
   async (
     input: ChangePasswordCommandInput,
-  ): Promise<
-    Result<
-      void,
-      | ForbiddenError
-      | ResourceNotFoundError
-      | PasswordMismatchError
-      | RepositoryError
-    >
-  > =>
+  ): Promise<Result<void, ChangePasswordCommandError>> =>
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 

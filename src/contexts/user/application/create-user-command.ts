@@ -25,6 +25,10 @@ export type CreateUserCommandInput = z.infer<typeof CreateUserCommandInput>;
 
 export type CreateUserCommandOutput = { readonly id: UserId };
 
+export type CreateUserCommandError =
+  | MailAddressDuplicationError
+  | RepositoryError;
+
 /**
  * ユーザーを作成する。
  *
@@ -43,12 +47,7 @@ export const createUserCommand =
   }) =>
   async (
     input: CreateUserCommandInput,
-  ): Promise<
-    Result<
-      CreateUserCommandOutput,
-      MailAddressDuplicationError | RepositoryError
-    >
-  > =>
+  ): Promise<Result<CreateUserCommandOutput, CreateUserCommandError>> =>
     await Result.gen(async function* () {
       yield* Result.await(checkMailAddressDuplication(deps, input.mailAddress));
 

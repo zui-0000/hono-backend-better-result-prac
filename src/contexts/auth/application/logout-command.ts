@@ -12,6 +12,8 @@ export const LogoutCommandInput = z.object({
 });
 export type LogoutCommandInput = z.infer<typeof LogoutCommandInput>;
 
+export type LogoutCommandError = RepositoryError;
+
 /**
  * セッションを終了する。**切る単位はセッション (sid) であって利用者 (sub) ではない** —
  * sub で切ると、スマホでログアウトしたら PC まで落ちる。
@@ -23,7 +25,9 @@ export const logoutCommand =
     readonly refreshTokenRepository: RefreshTokenRepository;
     readonly clock: Clock;
   }) =>
-  async (input: LogoutCommandInput): Promise<Result<void, RepositoryError>> =>
+  async (
+    input: LogoutCommandInput,
+  ): Promise<Result<void, LogoutCommandError>> =>
     await deps.refreshTokenRepository.revokeSession({
       sessionId: input.sessionId,
       revokedAt: deps.clock.now(),

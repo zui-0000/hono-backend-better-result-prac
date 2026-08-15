@@ -27,6 +27,11 @@ export type GetUserQueryService = {
   ) => Promise<Result<GetUserQueryOutput | undefined, RepositoryError>>;
 };
 
+export type GetUserQueryError =
+  | ForbiddenError
+  | ResourceNotFoundError
+  | RepositoryError;
+
 /**
  * ユーザーを取得する (CQRS のクエリ)。
  */
@@ -34,12 +39,7 @@ export const getUserQuery =
   (deps: { readonly getUserQueryService: GetUserQueryService }) =>
   async (
     input: GetUserQueryInput,
-  ): Promise<
-    Result<
-      GetUserQueryOutput,
-      ForbiddenError | ResourceNotFoundError | RepositoryError
-    >
-  > =>
+  ): Promise<Result<GetUserQueryOutput, GetUserQueryError>> =>
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 

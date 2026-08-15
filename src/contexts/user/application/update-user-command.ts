@@ -23,6 +23,12 @@ export const UpdateUserCommandInput = z.object({
 });
 export type UpdateUserCommandInput = z.infer<typeof UpdateUserCommandInput>;
 
+export type UpdateUserCommandError =
+  | ForbiddenError
+  | ResourceNotFoundError
+  | MailAddressDuplicationError
+  | RepositoryError;
+
 /**
  * プロフィールを更新する。認可 → 引き当て → 重複検証 → 状態遷移 → 永続化。
  *
@@ -33,15 +39,7 @@ export const updateUserCommand =
   (deps: { readonly userRepository: UserRepository; readonly clock: Clock }) =>
   async (
     input: UpdateUserCommandInput,
-  ): Promise<
-    Result<
-      void,
-      | ForbiddenError
-      | ResourceNotFoundError
-      | MailAddressDuplicationError
-      | RepositoryError
-    >
-  > =>
+  ): Promise<Result<void, UpdateUserCommandError>> =>
     await Result.gen(async function* () {
       yield* checkUserIsSelf(input.id, input.actor);
 

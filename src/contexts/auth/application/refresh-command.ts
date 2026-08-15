@@ -41,6 +41,8 @@ export type RefreshCommandDeps = {
   readonly clock: Clock;
 };
 
+export type RefreshCommandError = UnauthorizedError | RepositoryError;
+
 /**
  * 券を差し替えて、新しい組を返す。
  *
@@ -86,7 +88,7 @@ const rotate = async (
 const revokeReusedSession = async (
   deps: RefreshCommandDeps,
   current: RefreshToken,
-): Promise<Result<never, UnauthorizedError | RepositoryError>> =>
+): Promise<Result<never, RefreshCommandError>> =>
   (
     await deps.refreshTokenRepository.revokeSession({
       sessionId: current.sessionId,
@@ -108,7 +110,7 @@ const denyRefresh = async (): Promise<Result<never, UnauthorizedError>> =>
 type RefreshTokenStateHandler = (
   deps: RefreshCommandDeps,
   current: RefreshToken,
-) => Promise<Result<RefreshCommandOutput, UnauthorizedError | RepositoryError>>;
+) => Promise<Result<RefreshCommandOutput, RefreshCommandError>>;
 
 /**
  * 状態ごとの応じ方。
@@ -139,9 +141,7 @@ export const refreshCommand =
   (deps: RefreshCommandDeps) =>
   async (
     input: RefreshCommandInput,
-  ): Promise<
-    Result<RefreshCommandOutput, UnauthorizedError | RepositoryError>
-  > =>
+  ): Promise<Result<RefreshCommandOutput, RefreshCommandError>> =>
     await Result.gen(async function* () {
       // 券そのものは保存していないので、ハッシュに直してから引く。
       const presentedHash = await deps.refreshTokenIssuer.hash(
