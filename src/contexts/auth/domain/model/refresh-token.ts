@@ -46,11 +46,17 @@ export const RefreshToken = z.object({
 export type RefreshToken = z.infer<typeof RefreshToken>;
 
 /**
- * 券の寿命 (2 週間)。**presentation の Cookie の Max-Age と同じ長さである必要がある**
+ * 券の寿命 (2 日)。**ローテーションのたびに引き直される**ので、使っている限り切れない。
+ * 実際の意味は「最後に更新してから 2 日空いたら再ログイン」。
+ *
+ * **presentation の Cookie の Max-Age と同じ長さである必要がある**
  * (`refresh-cookie.ts` の `MAX_AGE_SECONDS`)。短いほうが先に効くので、ズレると
  * DB では生きている券をブラウザが捨てる (逆なら 401 が増える)。
+ *
+ * **presentation から直接は import できない** — `presentation-not-to-context-domain` が
+ * 塞いでいる。揃っていることは `refresh-controller.test.ts` が固定している。
  */
-const TTL_MILLIS = 14 * 24 * 60 * 60 * 1000;
+export const REFRESH_TOKEN_TTL_MILLIS = 2 * 24 * 60 * 60 * 1000;
 
 /**
  * 新しい券の集約を組み立てる (id を採番し、寿命を載せて未失効の状態で返す)。
@@ -77,7 +83,7 @@ export const createRefreshToken = (
     sessionId: params.sessionId,
     tokenHash: params.tokenHash,
     userId: params.userId,
-    expiresAt: new Date(timestamp.getTime() + TTL_MILLIS),
+    expiresAt: new Date(timestamp.getTime() + REFRESH_TOKEN_TTL_MILLIS),
     revokedAt: null,
     revokedReason: null,
     createdAt: timestamp,
@@ -113,7 +119,7 @@ export const RefreshTokenState = {
   Reused: "reused",
   /** ログアウト / 盗難検出で切られた。理由が読めない行もここへ倒す。 */
   Revoked: "revoked",
-  /** 寿命 (2 週間) を過ぎた。失効の有無より先に判定される。 */
+  /** 寿命 (2 日) を過ぎた。失効の有無より先に判定される。 */
   Expired: "expired",
 } as const;
 export type RefreshTokenState =

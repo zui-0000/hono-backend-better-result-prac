@@ -12,13 +12,13 @@ import {
   FIXED_UUID,
   headers,
   OTHER_UUID,
-  REFRESH_COOKIE_NAME,
   setCookieOf,
   withRefreshCookie,
 } from "~/__mocks__/data";
 import { app } from "~/app";
 import type { AppDeps } from "~/app-deps";
 import {
+  REFRESH_TOKEN_TTL_MILLIS,
   type RefreshToken,
   RevokedReasonEnum,
 } from "~/contexts/auth/domain/model/refresh-token";
@@ -42,6 +42,10 @@ const refresh = async (
     method: "POST",
     headers: withRefreshCookie(refreshToken),
   });
+
+/** Cookie を付けずに送る (ログアウト済み / Cookie が消えた状況)。 */
+const refreshWithoutCookie = async (deps: AppDeps): Promise<Response> =>
+  await app(deps).request("/auth/refresh", { method: "POST", headers });
 
 const makeStored = (over: Partial<RefreshToken> = {}): RefreshToken =>
   ({
@@ -117,7 +121,10 @@ describe(refreshController.name, () => {
       const setCookie = setCookieOf(response) ?? "";
       expect(setCookie).toContain("HttpOnly");
       expect(setCookie).toContain("Path=/auth/refresh");
-      expect(setCookie).toContain(`Max-Age=${14 * 24 * 60 * 60}`);
+      // **domain の寿命から導く。** 境界ルールで実装側は直接 import できないので
+      // (presentation-not-to-context-domain)、両者が揃っていることをここで固定する。
+      // 片方だけ変えると落ちる — 揃っていないと「なぜかログアウトされる」が起きる。
+      expect(setCookie).toContain(`Max-Age=${REFRESH_TOKEN_TTL_MILLIS / 1000}`);
 
       expect(rotated).toHaveLength(1);
       expect(rotated[0]?.revoked.id).toBe(stored.id);
@@ -192,54 +199,60 @@ describe(refreshController.name, () => {
       expect(revoked).toStrictEqual([]);
     });
 
-    test("401 になる理由が違っても本文を書き分けないこと", async () => {
-      const cases = [
-        recording().deps,
-        recording(makeStored({ expiresAt: secondsBefore(1) })).deps,
-        recording(
-          makeStored({
-            revokedAt: secondsBefore(5),
-            revokedReason: RevokedReasonEnum.Revoked,
-          }),
-        ).deps,
+    test("失敗の理由が違っても、応答が 1 種類しか無いこと", async () => {
+      const send = [
+        // 知らない券
+        async () => await refresh(recording().deps),
+        // 期限切れ
+        async () =>
+          await refresh(
+            recording(makeStored({ expiresAt: secondsBefore(1) })).deps,
+          ),
+        // 失効済み
+        async () =>
+          await refresh(
+            recording(
+              makeStored({
+                revokedAt: secondsBefore(5),
+                revokedReason: RevokedReasonEnum.Revoked,
+              }),
+            ).deps,
+          ),
+        // 契約の @minLength(20) に満たない券。**形式の違反も 401 に倒す。**
+        async () => await refresh(makeDeps(), "short"),
+        // Cookie そのものが無い (ログアウト済み / Cookie が消えた)。
+        // **使える券が保存されている deps** を渡す — makeDeps() だと引き当てに
+        // 失敗して 401 になり、「見に行かずに断った」のか区別がつかない。
+        async () => await refreshWithoutCookie(recording(makeStored()).deps),
       ];
 
-      const bodies = await Promise.all(
-        cases.map(async (deps) => await (await refresh(deps)).json()),
-      );
+      const responses = await Promise.all(send.map(async (f) => await f()));
 
       // 書き分けると「その券は存在する」と攻撃側に教えることになる。
-      expect(bodies[0]).toStrictEqual(bodies[1]);
-      expect(bodies[1]).toStrictEqual(bodies[2]);
-      expect(bodies[0]).toStrictEqual({
-        status: HttpStatus.Unauthorized,
-        code: ErrorCode.Unauthorized,
-        title: ErrorTitle.Unauthorized,
-      });
+      // **形式の違反と「券が無い」も同じ応答に畳む** — 呼ぶ側にとってはどれも
+      // 「認証をやり直せ」でしかなく、400 と 401 に割れると再ログインの判定を
+      // 2 通り書くことになる (実測で踏んだ)。
+      for (const response of responses) {
+        expect(response.status).toBe(HttpStatus.Unauthorized);
+        expect(await response.json()).toStrictEqual({
+          status: HttpStatus.Unauthorized,
+          code: ErrorCode.Unauthorized,
+          title: ErrorTitle.Unauthorized,
+        });
+      }
     });
 
-    test("契約に反する券は 400 と該当フィールドを返すこと", async () => {
-      const response = await refresh(makeDeps(), "short");
+    test("Cookie が無ければ、使える券が保存されていても 401 で打ち切ること", async () => {
+      // 保存側は「常に使える券を返す」ので、**引きに行けば 200 になってしまう**。
+      // それでも 401 で終わることが「Cookie が無い時点で打ち切っている」証拠になる。
+      const { deps, rotated, revoked } = recording(makeStored());
 
-      expect(response.status).toBe(HttpStatus.BadRequest);
-      expect(await response.json()).toStrictEqual({
-        status: HttpStatus.BadRequest,
-        code: ErrorCode.BadRequest,
-        title: ErrorTitle.BadRequest,
-        // フィールド名は Cookie の名前そのもの (ボディの項目名ではない)。
-        errors: [{ field: REFRESH_COOKIE_NAME, message: expect.any(String) }],
-      });
-    });
+      const response = await refreshWithoutCookie(deps);
 
-    test("Cookie が無ければ 400", async () => {
-      // 「券が無い」は形式の話なので 400。401 にすると認証の失敗と区別がつかない。
-      const response = await app(makeDeps()).request("/auth/refresh", {
-        method: "POST",
-        headers,
-      });
-
-      expect(response.status).toBe(HttpStatus.BadRequest);
+      expect(response.status).toBe(HttpStatus.Unauthorized);
       expect(setCookieOf(response)).toBeNull();
+      expect(rotated).toStrictEqual([]);
+      expect(revoked).toStrictEqual([]);
     });
   });
 });

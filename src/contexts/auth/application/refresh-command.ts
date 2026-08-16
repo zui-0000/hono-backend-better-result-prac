@@ -26,7 +26,8 @@ export type RefreshCommandDeps = {
 };
 
 export type RefreshCommandInput = {
-  readonly refreshToken: string;
+  /** Cookie が無ければ `undefined`。**「無い」も「無効」も同じ 401 に畳む。** */
+  readonly refreshToken: string | undefined;
 };
 
 export type RefreshCommandOutput = {
@@ -136,6 +137,13 @@ export const refreshCommand =
     input: RefreshCommandInput,
   ): Promise<Result<RefreshCommandOutput, RefreshCommandError>> =>
     Result.gen(async function* () {
+      // 券が無い = ログアウト済み、あるいは Cookie が消えた。**下の 401 と同じ本文へ倒す。**
+      // ここを契約側の必須指定に任せると 400 になり、呼ぶ側は「認証やり直し」の判定を
+      // 400 と 401 の 2 通り書くことになる (実測で踏んだ)。
+      if (input.refreshToken === undefined) {
+        return Result.err(new UnauthorizedError());
+      }
+
       // 券そのものは保存していないので、ハッシュに直してから引く。
       const presentedHash = await deps.refreshTokenIssuer.hash(
         input.refreshToken,

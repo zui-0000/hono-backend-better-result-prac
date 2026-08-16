@@ -54,14 +54,12 @@ describe(createRefreshToken.name, () => {
       { userId: USER_ID, sessionId: SESSION_ID, tokenHash: TOKEN_HASH },
     );
 
-  test("寿命を 2 週間にすること", () => {
-    // 業務が決めた数字。Cookie の Max-Age (1209600 秒) と揃っている必要があり、
-    // ズレると DB では生きている券をブラウザが先に捨てる (逆なら 401 が増える)。
-    const fortnight = 14 * 24 * 60 * 60 * 1000;
+  test("寿命を 2 日にすること", () => {
+    // 業務が決めた数字。**リテラルで書くのは、定数を参照すると同義反復になるから。**
+    // Cookie の Max-Age との一致は refresh-controller.test.ts が別途固定している。
+    const twoDays = 2 * 24 * 60 * 60 * 1000;
 
-    expect(create().expiresAt).toStrictEqual(
-      new Date(NOW.getTime() + fortnight),
-    );
+    expect(create().expiresAt).toStrictEqual(new Date(NOW.getTime() + twoDays));
   });
 
   test("発行直後は失効していないこと", () => {

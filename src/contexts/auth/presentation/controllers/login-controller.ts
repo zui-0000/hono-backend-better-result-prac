@@ -15,7 +15,7 @@ type Input = { readonly body: z.infer<typeof LoginBody> };
  *
  * **券の組を 2 つの経路に振り分ける。** アクセストークンは本文、
  * リフレッシュトークンは HttpOnly Cookie。後者を本文に載せると JS から読めてしまい、
- * XSS を踏んだ瞬間に 2 週間有効な券が漏れる。
+ * XSS を踏んだ瞬間に 2 日有効な券が漏れる。
  */
 export const loginController = (deps: AuthDeps) => {
   const command = loginCommand(deps);

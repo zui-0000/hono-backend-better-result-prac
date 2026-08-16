@@ -121,7 +121,7 @@ namespace BackendApi {
     @post
     @route("/refresh")
     @operationId("refresh")
-    op refresh(...CommonHeaders, @cookie refreshToken: RefreshToken):
+    op refresh(...CommonHeaders, @cookie refreshToken?: RefreshToken):
       | RefreshSuccessResponse
       | BadRequestErrorResponse
       | UnauthorizedErrorResponse

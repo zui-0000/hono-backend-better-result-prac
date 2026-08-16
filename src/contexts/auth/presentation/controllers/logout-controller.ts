@@ -16,7 +16,7 @@ type Input = { readonly auth: AuthenticatedCaller };
  * `SessionId` への変換は command が行う
  * (shared は contexts を知れないので branded な型で受け取れない)。
  *
- * **Cookie も消す。** サーバ側で失効させるだけでは、ブラウザが 2 週間送り続ける。
+ * **Cookie も消す。** サーバ側で失効させるだけでは、ブラウザが 2 日送り続ける。
  */
 export const logoutController = (deps: AuthDeps) => {
   const command = logoutCommand(deps);

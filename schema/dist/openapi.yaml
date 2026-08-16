@@ -97,7 +97,7 @@ paths:
         - $ref: '#/components/parameters/CommonHeaders'
         - name: refresh_token
           in: cookie
-          required: true
+          required: false
           schema:
             $ref: '#/components/schemas/RefreshToken'
           explode: false

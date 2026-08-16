@@ -66,7 +66,7 @@ describe(logoutController.name, () => {
 
     const response = await logout(deps);
 
-    // 消さないとブラウザは 2 週間送り続け、盗難検出のログをノイズで埋める。
+    // 消さないとブラウザは 2 日送り続け、盗難検出のログをノイズで埋める。
     expect(cookieValueOf(response)).toBe("");
     const setCookie = setCookieOf(response) ?? "";
     expect(setCookie).toContain("Max-Age=0");
