@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 
 import {
+  Login200Response,
   LoginBody,
   LoginHeader,
   LogoutHeader,
+  Refresh200Response,
   RefreshHeader,
 } from "~/generated/auth";
 import { handleWithResult } from "~/shared/presentation/handle-with-result";
@@ -26,6 +28,7 @@ export const authRoutes = (deps: AuthDeps): Hono<RequestIdEnv> => {
     "/login",
     handleWithResult({
       request: { header: LoginHeader, body: LoginBody },
+      response: Login200Response,
       controller: loginController(deps),
     })(deps),
   );
@@ -35,6 +38,7 @@ export const authRoutes = (deps: AuthDeps): Hono<RequestIdEnv> => {
     handleWithResult({
       // 券は本文ではなく Cookie で受け取る。契約の `@cookie refreshToken` と 1 対 1。
       request: { header: RefreshHeader, cookie: RefreshCookie },
+      response: Refresh200Response,
       controller: refreshController(deps),
     })(deps),
   );

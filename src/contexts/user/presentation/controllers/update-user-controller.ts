@@ -28,6 +28,6 @@ export const updateUserController = (deps: UserDeps) => {
         actor: auth.userId,
       };
       yield* Result.await(command(input));
-      return SuccessResponse.NoContent(Result.ok());
+      return Result.ok(SuccessResponse.NoContent());
     });
 };

@@ -1,7 +1,7 @@
 import { Result } from "better-result";
 import type * as z from "zod";
 
-import { CreateUser201Response, type CreateUserBody } from "~/generated/users";
+import type { CreateUserBody } from "~/generated/users";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
@@ -26,6 +26,6 @@ export const createUserController = (deps: UserDeps) => {
     Result.gen(async function* () {
       const input: CreateUserCommandInput = body;
       const output = yield* Result.await(command(input));
-      return SuccessResponse.Created(CreateUser201Response)(Result.ok(output));
+      return Result.ok(SuccessResponse.Created(output));
     });
 };

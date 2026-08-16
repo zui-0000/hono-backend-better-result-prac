@@ -1,6 +1,5 @@
 import { Result } from "better-result";
 
-import { Refresh200Response } from "~/generated/auth";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
@@ -31,9 +30,9 @@ export const refreshController = (deps: AuthDeps) => {
         refreshToken: refreshTokenOf(cookie),
       };
       const { accessToken, refreshToken } = yield* Result.await(command(input));
-      return setRefreshCookie(
-        deps.cookieSettings,
-        refreshToken,
-      )(SuccessResponse.Ok(Refresh200Response)(Result.ok({ accessToken })));
+      const response = SuccessResponse.Ok({ accessToken });
+      return Result.ok(
+        setRefreshCookie(deps.cookieSettings, refreshToken)(response),
+      );
     });
 };

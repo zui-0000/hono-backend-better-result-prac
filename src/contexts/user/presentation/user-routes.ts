@@ -4,10 +4,12 @@ import {
   ChangePasswordBody,
   ChangePasswordHeader,
   ChangePasswordParams,
+  CreateUser201Response,
   CreateUserBody,
   CreateUserHeader,
   DeleteUserHeader,
   DeleteUserParams,
+  GetUser200Response,
   GetUserHeader,
   GetUserParams,
   UpdateUserBody,
@@ -42,6 +44,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
     "/",
     handleWithResult({
       request: { header: CreateUserHeader, body: CreateUserBody },
+      response: CreateUser201Response,
       controller: createUserController(deps),
     })(deps),
   );
@@ -51,6 +54,7 @@ export const userRoutes = (deps: UserDeps): Hono<RequestIdEnv> => {
     handleWithResult({
       auth: true,
       request: { header: GetUserHeader, params: GetUserParams },
+      response: GetUser200Response,
       controller: getUserController(deps),
     })(deps),
   );

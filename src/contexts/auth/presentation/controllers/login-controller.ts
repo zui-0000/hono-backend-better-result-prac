@@ -1,7 +1,7 @@
 import { Result } from "better-result";
 import type * as z from "zod";
 
-import { Login200Response, type LoginBody } from "~/generated/auth";
+import type { LoginBody } from "~/generated/auth";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import {
@@ -26,9 +26,9 @@ export const loginController = (deps: AuthDeps) => {
     Result.gen(async function* () {
       const input: LoginCommandInput = body;
       const { accessToken, refreshToken } = yield* Result.await(command(input));
-      return setRefreshCookie(
-        deps.cookieSettings,
-        refreshToken,
-      )(SuccessResponse.Ok(Login200Response)(Result.ok({ accessToken })));
+      const response = SuccessResponse.Ok({ accessToken });
+      return Result.ok(
+        setRefreshCookie(deps.cookieSettings, refreshToken)(response),
+      );
     });
 };

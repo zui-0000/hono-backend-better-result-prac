@@ -1,4 +1,3 @@
-import type { Result } from "better-result";
 import type { CookieOptions } from "hono/utils/cookie";
 import * as z from "zod";
 
@@ -75,12 +74,12 @@ const cookieOptions = (
 
 const attach =
   (settings: CookieSettings, value: string, maxAge: number) =>
-  <E>(result: Result<SuccessResponse, E>): Result<SuccessResponse, E> =>
+  <Body>(response: SuccessResponse<Body>): SuccessResponse<Body> =>
     withResponseCookie({
       name: NAME,
       value,
       options: cookieOptions(settings, maxAge),
-    })(result);
+    })(response);
 
 /**
  * 券を Cookie に載せる。ログインと更新の両方が使う

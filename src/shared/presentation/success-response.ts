@@ -1,6 +1,4 @@
-import type { Result } from "better-result";
 import type { CookieOptions } from "hono/utils/cookie";
-import type * as z from "zod";
 
 import { HttpStatus } from "./constants/http-status";
 
@@ -32,29 +30,14 @@ type WithCookie = { readonly cookie?: ResponseCookie };
  *
  * **判別子は `status` そのもの。** 本文を持てるかはステータスが決まれば決まるので、
  * 別に `_tag` を持たせると同じことを 2 箇所で言うことになる。
- */
-export type SuccessResponse =
-  | ({ readonly status: NoBodyStatus } & WithCookie)
-  | ({ readonly status: BodyStatus; readonly body: unknown } & WithCookie);
-
-/**
- * 本文のある応答にする。
  *
- * スキーマは 2 つ仕事をする — 値の型を縛るのと、**契約どおりかを実行時に確かめる**。
- * 後者が要るのは、クエリ側がドメインを経由せず DB の行をそのまま返すから。
- * 契約とズレた応答は**バグ**なので throw して 500 にする (握り潰さない)。
+ * `Body` は**経路が宣言した応答スキーマの入力型**が入る
+ * (`handle-with-result.ts` の `Spec.response`)。宣言が無い経路では `never` になり、
+ * 本文のある応答を返そうとするとコンパイルエラーになる。
  */
-const withBody =
-  (status: BodyStatus) =>
-  <S extends z.ZodType>(schema: S) =>
-  <E>(result: Result<z.input<S>, E>): Result<SuccessResponse, E> =>
-    result.map((value) => ({ status, body: schema.parse(value) }));
-
-/** 本文のない応答にする。値は捨てるので、検証するスキーマも受け取らない。 */
-const withoutBody =
-  (status: NoBodyStatus) =>
-  <E>(result: Result<unknown, E>): Result<SuccessResponse, E> =>
-    result.map(() => ({ status }));
+export type SuccessResponse<Body = unknown> =
+  | ({ readonly status: NoBodyStatus } & WithCookie)
+  | ({ readonly status: BodyStatus; readonly body: Body } & WithCookie);
 
 /**
  * 組み立て済みの応答に Cookie を載せる。
@@ -62,18 +45,31 @@ const withoutBody =
  */
 export const withResponseCookie =
   (cookie: ResponseCookie) =>
-  <E>(result: Result<SuccessResponse, E>): Result<SuccessResponse, E> =>
-    result.map((response) => ({ ...response, cookie }));
+  <Body>(response: SuccessResponse<Body>): SuccessResponse<Body> => ({
+    ...response,
+    cookie,
+  });
 
 /**
  * 成功応答の作り方。**ステータスと本文の有無が、そのまま表になっている。**
  * controller は名前を選ぶだけで、数字を手で書く場所が無い。
+ *
+ * **契約で検証するのはここではない。** 応答スキーマは経路が宣言し、
+ * `handleWithResult` が返す直前に `.parse()` する。ここで受け取ると
+ * controller が生成物を引き回すことになり、リクエストの契約 (経路が持つ) と
+ * 置き場が割れる。
  */
 export const SuccessResponse = {
   /** 200。取得系の応答。 */
-  Ok: withBody(HttpStatus.Ok),
+  Ok: <Body>(body: Body): SuccessResponse<Body> => ({
+    status: HttpStatus.Ok,
+    body,
+  }),
   /** 201。作成した資源の識別子を返す。 */
-  Created: withBody(HttpStatus.Created),
+  Created: <Body>(body: Body): SuccessResponse<Body> => ({
+    status: HttpStatus.Created,
+    body,
+  }),
   /** 204。状態を変えるだけで値を返さない (CQRS のコマンド)。 */
-  NoContent: withoutBody(HttpStatus.NoContent),
+  NoContent: (): SuccessResponse<never> => ({ status: HttpStatus.NoContent }),
 } as const;

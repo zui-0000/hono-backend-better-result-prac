@@ -1,6 +1,7 @@
 import { Result } from "better-result";
 import type { Handler } from "hono";
 import { setCookie } from "hono/cookie";
+import type * as z from "zod";
 
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
 import { InternalServerError } from "~/shared/errors/internal-server-error";
@@ -20,22 +21,58 @@ import { verifyAuth } from "./handler/verify-bearer";
 import type { RequestIdEnv } from "./resolve-request-id";
 import type { SuccessResponse } from "./success-response";
 
+/** 経路が応答スキーマを宣言していなければ `never` = 本文を持てない。 */
+type ResponseBody<Res> = Res extends z.ZodType ? z.input<Res> : never;
+
 /**
  * エンドポイントの宣言。**キーが実行の段と 1 対 1 で対応する。**
  *
  *   auth       → verifyAuth        （省くと認証しない）
  *   request    → validateRequest
  *   controller → controller
+ *   response   → validateResponse  （省くと 204 しか返せない）
  *
  * `auth` を `request` に入れないのは、あちらが「入力源 → スキーマ」の表で、
  * 認証だけスキーマを持たないため。契約の `@useAuth(BearerAuth)` と 1 対 1。
+ *
+ * **`response` も入れないのは、あちらが「入力源」の表だから。** ただし
+ * 応答の契約をここに置く理由は同じ — HTTP の契約は経路の宣言に集める。
  */
-type Spec<Req extends RequestSchemas, Auth extends true | undefined> = {
+type Spec<
+  Req extends RequestSchemas,
+  Auth extends true | undefined,
+  Res extends z.ZodType | undefined,
+> = {
   readonly auth?: Auth;
   readonly request: Req;
+  readonly response?: Res;
   readonly controller: (
     input: ControllerInput<Req, Auth>,
-  ) => Promise<Result<SuccessResponse, ApplicationError>>;
+  ) => Promise<Result<SuccessResponse<ResponseBody<Res>>, ApplicationError>>;
+};
+
+/**
+ * 応答が契約どおりかを実行時に確かめる。
+ *
+ * 要るのは**クエリ側がドメインを経由せず DB の行をそのまま返す**から。型は手で
+ * 宣言しているだけなので、実際のデータがズレても型検査は素通りする。
+ * 契約とズレた応答は**バグ**なので throw して 500 にする (握り潰さない)。
+ *
+ * **`Result.gen` の中で呼ぶこと。** 外で throw すると Hono 既定の平文 500 になり、
+ * 契約と違う形の応答が出る。
+ */
+const validateResponse = (
+  schema: z.ZodType | undefined,
+  responded: SuccessResponse,
+): SuccessResponse => {
+  if (responded.status === HttpStatus.NoContent) {
+    return responded;
+  }
+  if (schema === undefined) {
+    // 型で防いでいる (response の無い経路は 204 しか返せない) ので、ここへは来ない。
+    throw new Error("応答スキーマが宣言されていない経路が本文を返しました。");
+  }
+  return { ...responded, body: schema.parse(responded.body) };
 };
 
 /**
@@ -55,8 +92,12 @@ type Spec<Req extends RequestSchemas, Auth extends true | undefined> = {
  * routes の時点で部分適用済みなので、この層を通らない。
  */
 export const handleWithResult =
-  <Req extends RequestSchemas, Auth extends true | undefined = undefined>(
-    spec: Spec<Req, Auth>,
+  <
+    Req extends RequestSchemas,
+    Auth extends true | undefined = undefined,
+    Res extends z.ZodType | undefined = undefined,
+  >(
+    spec: Spec<Req, Auth, Res>,
   ) =>
   (deps: {
     readonly accessTokenIssuer: AccessTokenIssuer;
@@ -78,7 +119,7 @@ export const handleWithResult =
             c,
           } as ControllerInput<Req, Auth>),
         );
-        return Result.ok(responded);
+        return Result.ok(validateResponse(spec.response, responded));
       });
     } catch (defect) {
       // 型付きエラーに翻訳できない失敗。放っておくと Hono 既定の平文 500 が返り、

@@ -29,8 +29,8 @@ export const logoutController = (deps: AuthDeps) => {
         sessionId: auth.sessionId,
       };
       yield* Result.await(command(input));
-      return clearRefreshCookie(deps.cookieSettings)(
-        SuccessResponse.NoContent(Result.ok()),
+      return Result.ok(
+        clearRefreshCookie(deps.cookieSettings)(SuccessResponse.NoContent()),
       );
     });
 };

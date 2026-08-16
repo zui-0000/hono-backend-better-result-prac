@@ -32,6 +32,6 @@ export const changePasswordController = (deps: UserDeps) => {
         actorSession: auth.sessionId,
       };
       yield* Result.await(command(input));
-      return SuccessResponse.NoContent(Result.ok());
+      return Result.ok(SuccessResponse.NoContent());
     });
 };

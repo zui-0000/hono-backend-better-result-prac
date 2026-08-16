@@ -1,7 +1,7 @@
 import { Result } from "better-result";
 import type * as z from "zod";
 
-import { GetUser200Response, type GetUserParams } from "~/generated/users";
+import type { GetUserParams } from "~/generated/users";
 import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
@@ -26,6 +26,6 @@ export const getUserController = (deps: UserDeps) => {
         actor: auth.userId,
       };
       const output = yield* Result.await(query(input));
-      return SuccessResponse.Ok(GetUser200Response)(Result.ok(output));
+      return Result.ok(SuccessResponse.Ok(output));
     });
 };

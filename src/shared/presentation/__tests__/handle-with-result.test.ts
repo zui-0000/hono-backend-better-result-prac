@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { Result } from "better-result";
+
 import { makeDeps } from "~/__mocks__/app-deps";
 import { FIXED_UUID, headers, makeUser, REQUEST_ID } from "~/__mocks__/data";
 import { app } from "~/app";
@@ -39,12 +41,11 @@ describe(handleWithResult.name, () => {
     // クエリ側はドメインを経由しないので、ここが唯一の関所。
     const deps = makeDeps({
       getUserQueryService: {
+        // **本物の Result で返すこと。** 偽のオブジェクトだと yield* の時点で
+        // 壊れ、応答検証まで到達しないまま 500 になる (それでもテストは緑になる)。
         execute: async () =>
           // 契約に無い形 (name が欠けている)
-          ({
-            isOk: () => true,
-            value: { mailAddress: "a@example.com" },
-          }) as never,
+          Result.ok({ mailAddress: "a@example.com" } as never),
       },
     });
 
@@ -58,8 +59,7 @@ describe(handleWithResult.name, () => {
   test("204 に本文も Content-Type も付かないこと", async () => {
     const deps = makeDeps({
       userRepository: {
-        findById: async () =>
-          (await import("better-result")).Result.ok(makeUser()),
+        findById: async () => Result.ok(makeUser()),
       },
     });
 
