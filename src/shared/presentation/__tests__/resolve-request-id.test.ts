@@ -60,7 +60,7 @@ describe(resolveRequestId.name, () => {
   });
 
   describe("本文への影響", () => {
-    test("契約のある経路でも、送られてこない場合は採番して通すこと", async () => {
+    test("契約のある経路でも送られてこない場合、採番して通すこと", async () => {
       // **以前はここが 400 だった** — middleware が採番したうえで、
       // 契約側の検証が必須ヘッダの欠落として弾いていた。
       const response = await createUser();

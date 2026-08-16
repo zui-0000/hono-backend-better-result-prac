@@ -27,7 +27,7 @@ const put = async (
   });
 
 describe(updateUserController.name, () => {
-  test("204 を返し、updatedAt だけ進んで createdAt は据え置くこと", async () => {
+  test("本人の場合、204 を返し updatedAt だけ進んで createdAt は据え置くこと", async () => {
     const updated: User[] = [];
     const deps = makeDeps({
       userRepository: {
@@ -51,7 +51,7 @@ describe(updateUserController.name, () => {
     expect(updated[0]?.hashedPassword).toBe(makeUser().hashedPassword);
   });
 
-  test("メールアドレスを変えない更新が 409 にならないこと", async () => {
+  test("メールアドレスを変えない場合、409 にならないこと", async () => {
     // **excluding が効いているか。** 無いと「自分自身がヒットしただけ」を
     // 重複と誤判定し、変えない更新が常に失敗する。
     const deps = makeDeps({
@@ -69,7 +69,7 @@ describe(updateUserController.name, () => {
     expect(response.status).toBe(HttpStatus.NoContent);
   });
 
-  test("他人が使っているメールアドレスなら 409", async () => {
+  test("他人が使っているメールアドレスの場合、409 を返すこと", async () => {
     const deps = makeDeps({
       userRepository: {
         findById: async () => Result.ok(makeUser()),
@@ -85,12 +85,12 @@ describe(updateUserController.name, () => {
     );
   });
 
-  test("他人の id なら 403", async () => {
+  test("他人の id の場合、403 を返すこと", async () => {
     const response = await put(makeDeps(), OTHER_UUID);
     expect(response.status).toBe(HttpStatus.Forbidden);
   });
 
-  test("存在しなければ 404", async () => {
+  test("存在しない場合、404 を返すこと", async () => {
     const response = await put(makeDeps());
     expect(response.status).toBe(HttpStatus.NotFound);
   });

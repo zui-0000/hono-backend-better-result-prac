@@ -33,7 +33,7 @@ const put = async (deps: AppDeps, id: string = FIXED_UUID): Promise<Response> =>
   });
 
 describe(changePasswordController.name, () => {
-  test("204 を返し、変わるのはハッシュと updatedAt だけであること", async () => {
+  test("現在のパスワードが正しい場合、204 を返し変わるのはハッシュと updatedAt だけであること", async () => {
     const updated: User[] = [];
     const deps = makeDeps({
       userRepository: {
@@ -57,7 +57,7 @@ describe(changePasswordController.name, () => {
     expect(updated[0]?.createdAt).toStrictEqual(new Date(0));
   });
 
-  test("現在のパスワードが違えば 4011 を返し、永続化しないこと", async () => {
+  test("現在のパスワードが違う場合、4011 を返し永続化しないこと", async () => {
     // **トークンを盗まれてもパスワードは変えられない**という守り。
     //
     // status ではなく code を見る。汎用 401 (4010) と同じステータスなので、
@@ -83,17 +83,17 @@ describe(changePasswordController.name, () => {
     expect(updated).toStrictEqual([]);
   });
 
-  test("他人の id なら 403", async () => {
+  test("他人の id の場合、403 を返すこと", async () => {
     const response = await put(makeDeps(), OTHER_UUID);
     expect(response.status).toBe(HttpStatus.Forbidden);
   });
 
-  test("存在しなければ 404", async () => {
+  test("存在しない場合、404 を返すこと", async () => {
     const response = await put(makeDeps());
     expect(response.status).toBe(HttpStatus.NotFound);
   });
 
-  test("いま操作している端末以外のセッションを切ること", async () => {
+  test("現在のパスワードが正しい場合、いま操作している端末以外のセッションを切ること", async () => {
     // 変えたい動機の大半は「漏れたかもしれない」。切らないと
     // **盗んだ側のセッションだけが生き残る** (実測で踏んだ)。
     const revoked: unknown[] = [];
@@ -116,7 +116,7 @@ describe(changePasswordController.name, () => {
     ]);
   });
 
-  test("失効を済ませてから差し替えること", async () => {
+  test("現在のパスワードが正しい場合、失効を済ませてから差し替えること", async () => {
     // 逆順だと、差し替えは通ったのに失効で落ちたとき盗まれた券が生き残り、
     // しかも再試行できない (currentPassword が既に古く 401 になる)。
     const order: string[] = [];
@@ -141,7 +141,7 @@ describe(changePasswordController.name, () => {
     expect(order).toStrictEqual(["revoke", "update"]);
   });
 
-  test("現在のパスワードが違えば失効も走らないこと", async () => {
+  test("現在のパスワードが違う場合、失効も走らないこと", async () => {
     // 打ち間違い 1 回で全端末が落ちると、盗難検出より先に自分が困る。
     const order: string[] = [];
     const deps = makeDeps({

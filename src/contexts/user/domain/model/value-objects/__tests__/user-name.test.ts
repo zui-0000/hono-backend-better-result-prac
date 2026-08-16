@@ -11,18 +11,18 @@ import { UserName } from "../user-name";
  * 片方だけ直すと静かにズレるので、値を触るときは両方見ること。
  */
 describe("UserName", () => {
-  test("境界の内側を通すこと (1 文字と 100 文字)", () => {
+  test("境界の内側 (1 文字と 100 文字) の場合、通すこと", () => {
     expect(UserName.safeParse("あ").success).toBe(true);
     expect(UserName.safeParse("あ".repeat(100)).success).toBe(true);
   });
 
-  test("境界の外側を弾くこと (0 文字と 101 文字)", () => {
+  test("境界の外側 (0 文字と 101 文字) の場合、弾くこと", () => {
     // 空文字を通すと「名前が無い利用者」が生まれる。
     expect(UserName.safeParse("").success).toBe(false);
     expect(UserName.safeParse("あ".repeat(101)).success).toBe(false);
   });
 
-  test("文字種を制限しないこと", () => {
+  test("記号や絵文字を含む場合でも、通すこと", () => {
     // 表示のための名前で識別子ではないので、記号や絵文字を弾く理由が無い。
     // ここが落ちたら誰かが `.regex()` を足した合図。足すなら契約側にも要る。
     for (const name of ["山田 太郎", "Taro Yamada", "🐈", "a-b_c.d"]) {
@@ -30,14 +30,14 @@ describe("UserName", () => {
     }
   });
 
-  test("値を整形しないこと (前後の空白を落とさない)", () => {
+  test("前後に空白がある場合、落とさずそのまま通すこと", () => {
     // 検証だけして値は変えないのが値オブジェクトの役目。`.trim()` を足すと
     // クライアントが送った表記を復元できなくなる。
     const padded = "  太郎  ";
     expect(String(UserName.parse(padded))).toBe(padded);
   });
 
-  test("**長さは UTF-16 コードユニットで数えること** (契約の書き方とはズレる)", () => {
+  test("サロゲートペアを含む場合、**UTF-16 コードユニットで数えること** (契約の書き方とはズレる)", () => {
     // zod の `.max()` は `String.prototype.length` を見るので、サロゲートペアが
     // 2 つに数えられる。一方 OpenAPI の `maxLength` は「コードポイント数」と
     // 定義されているため、**契約は 🐈 を 51 匹まで許すと読める**のに実装は弾く。

@@ -14,7 +14,7 @@ const del = async (deps: AppDeps, id: string = FIXED_UUID): Promise<Response> =>
   await app(deps).request(`/users/${id}`, { method: "DELETE", headers });
 
 describe(deleteUserController.name, () => {
-  test("204 を返し、その id で削除すること", async () => {
+  test("本人かつ存在する場合、204 を返しその id で削除すること", async () => {
     const deleted: string[] = [];
     const deps = makeDeps({
       userRepository: {
@@ -32,7 +32,7 @@ describe(deleteUserController.name, () => {
     expect(deleted).toStrictEqual([FIXED_UUID]);
   });
 
-  test("存在しなければ 404 を返し、削除も走らないこと", async () => {
+  test("存在しない場合、404 を返し削除も走らないこと", async () => {
     // 無い相手を消して 204 を返さない (指定が誤っていると教えるほうを採った)。
     const deleted: string[] = [];
     const deps = makeDeps({
@@ -50,12 +50,12 @@ describe(deleteUserController.name, () => {
     expect(deleted).toStrictEqual([]);
   });
 
-  test("他人の id なら 403", async () => {
+  test("他人の id の場合、403 を返すこと", async () => {
     const response = await del(makeDeps(), OTHER_UUID);
     expect(response.status).toBe(HttpStatus.Forbidden);
   });
 
-  test("退会したらセッションも切ること", async () => {
+  test("本人かつ存在する場合、セッションも切ること", async () => {
     // 券に FK が張られていないので DB は後始末をしてくれない。切らないと
     // **消えた利用者が有効な券を持ち続け、無期限に再発行できる** (実測で踏んだ)。
     const revoked: unknown[] = [];
@@ -76,7 +76,7 @@ describe(deleteUserController.name, () => {
     expect(revoked).toStrictEqual([{ userId: FIXED_UUID }]);
   });
 
-  test("失効を済ませてから消すこと", async () => {
+  test("本人かつ存在する場合、失効を済ませてから消すこと", async () => {
     // 逆順だと、失効に失敗したとき「消えた利用者の券だけが生きている」状態が残り、
     // 再試行しても直らない (相手はもう居ないので 404 になる)。
     const order: string[] = [];
@@ -101,7 +101,7 @@ describe(deleteUserController.name, () => {
     expect(order).toStrictEqual(["revoke", "delete"]);
   });
 
-  test("存在しなければ失効も走らないこと", async () => {
+  test("存在しない場合、失効も走らないこと", async () => {
     const order: string[] = [];
     const deps = makeDeps({
       sessionRevoker: {

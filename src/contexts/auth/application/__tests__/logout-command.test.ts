@@ -13,7 +13,7 @@ const VALID = { sessionId: OTHER_UUID };
 describe(logoutCommand.name, () => {
   describe("正常系", () => {
     test("セッション単位で失効させること", async () => {
-      // **切る単位は sid であって sub ではない。** sub で切ると、
+      // **切る単位は sessionId であって userId ではない。** sub で切ると、
       // スマホでログアウトしたら PC まで落ちる。
       const revoked: unknown[] = [];
       const deps = makeDeps({
@@ -70,7 +70,7 @@ describe(logoutCommand.name, () => {
   });
 
   describe("入力の変換", () => {
-    test("sid が uuid v7 でない場合、失敗ではなく throw すること", async () => {
+    test("sessionId が uuid v7 でない場合、失敗ではなく throw すること", async () => {
       // claims は AuthenticatedCaller が検証済み。ここで落ちるのは
       // 検証を抜けた値が届いたということで、**サーバのバグ**。
       const command = logoutCommand(makeDeps());

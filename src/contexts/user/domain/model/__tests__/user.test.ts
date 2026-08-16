@@ -120,7 +120,7 @@ describe(changeUserPassword.name, () => {
 });
 
 describe(verifyUserPassword.name, () => {
-  test("**照合に渡すのは「渡された平文」と「保存済みハッシュ」であること**", async () => {
+  test("**渡された平文と保存済みハッシュを突き合わせること**", async () => {
     // ここが逆になると、実装によっては**どんな平文でも通る**。
     // API テストの偽 hasher は引数を無視するので、この取り違えは検出できない。
     const received: [string, string][] = [];
@@ -141,7 +141,7 @@ describe(verifyUserPassword.name, () => {
     expect(received).toStrictEqual([["plaintext1234", HASH]]);
   });
 
-  test("一致すれば成功を返すこと", async () => {
+  test("一致する場合、成功を返すこと", async () => {
     const passwordHasher: PasswordHasher = {
       hash: async () => HASH,
       verify: async () => true,
@@ -156,7 +156,7 @@ describe(verifyUserPassword.name, () => {
     expect(result.isOk()).toBe(true);
   });
 
-  test("一致しなければ PasswordMismatchError で失敗すること", async () => {
+  test("一致しない場合、PasswordMismatchError で失敗すること", async () => {
     const passwordHasher: PasswordHasher = {
       hash: async () => HASH,
       verify: async () => false,

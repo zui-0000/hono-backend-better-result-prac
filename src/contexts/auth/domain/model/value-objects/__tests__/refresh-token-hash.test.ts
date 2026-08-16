@@ -9,7 +9,7 @@ import { RefreshTokenHash } from "../refresh-token-hash";
  * `{ token, hash }` はどちらも `string` で、型では区別が付かない。
  */
 describe("RefreshTokenHash", () => {
-  test("SHA-256 の 16 進 64 桁を通すこと", () => {
+  test("SHA-256 の 16 進 64 桁の場合、通すこと", () => {
     expect(RefreshTokenHash.safeParse("0".repeat(64)).success).toBe(true);
     expect(
       RefreshTokenHash.safeParse(
@@ -18,7 +18,7 @@ describe("RefreshTokenHash", () => {
     ).toBe(true);
   });
 
-  test("大文字を弾くこと", () => {
+  test("大文字が混ざる場合、弾くこと", () => {
     // 今の実装 (`Bun.CryptoHasher(...).digest("hex")`) は小文字しか返さないので、
     // これは**将来ハッシュ実装を替えたとき**の網。tokenHash は一意制約の張られた
     // キーで素の一致で引くため、綴りを 1 通りに固定しておく。
@@ -29,7 +29,7 @@ describe("RefreshTokenHash", () => {
     );
   });
 
-  test("桁数が違えば弾くこと", () => {
+  test("桁数が違う場合、弾くこと", () => {
     // SHA-256 は必ず 64 桁。長さが違うのは別のアルゴリズムか切り詰められた値で、
     // どちらも突き合わせが成立しない。
     expect(RefreshTokenHash.safeParse("a".repeat(63)).success).toBe(false);
@@ -37,7 +37,7 @@ describe("RefreshTokenHash", () => {
     expect(RefreshTokenHash.safeParse("").success).toBe(false);
   });
 
-  test("券そのものを弾くこと", () => {
+  test("券そのものを渡した場合、弾くこと", () => {
     // **この正規表現を置いている一番の理由。** `issue()` の戻りは { token, hash } で
     // どちらも string なので、取り違えても型は通る。渡ってしまうと平文の券が
     // そのまま DB に入り、ダンプ 1 つで全セッションが盗める。
@@ -48,7 +48,7 @@ describe("RefreshTokenHash", () => {
     expect(RefreshTokenHash.safeParse(token).success).toBe(false);
   });
 
-  test("16 進以外の文字を弾くこと", () => {
+  test("16 進以外の文字が混ざる場合、弾くこと", () => {
     expect(RefreshTokenHash.safeParse(`${"a".repeat(63)}g`).success).toBe(
       false,
     );
@@ -57,7 +57,7 @@ describe("RefreshTokenHash", () => {
     );
   });
 
-  test("前後の空白を許さないこと", () => {
+  test("前後に空白がある場合、弾くこと", () => {
     expect(RefreshTokenHash.safeParse(` ${"a".repeat(64)}`).success).toBe(
       false,
     );

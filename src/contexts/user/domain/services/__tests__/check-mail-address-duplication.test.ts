@@ -45,7 +45,7 @@ const repositoryReturning = (
 });
 
 describe(checkMailAddressDuplication.name, () => {
-  test("誰も使っていなければ通ること", async () => {
+  test("誰も使っていない場合、通すこと", async () => {
     const result = await checkMailAddressDuplication(
       repositoryReturning(undefined),
       MAIL,
@@ -54,7 +54,7 @@ describe(checkMailAddressDuplication.name, () => {
     expect(result.isOk()).toBe(true);
   });
 
-  test("他人が使っていれば MailAddressDuplicationError で落ちること", async () => {
+  test("他人が使っている場合、MailAddressDuplicationError で落ちること", async () => {
     const result = await checkMailAddressDuplication(
       repositoryReturning(makeUser(OTHER)),
       MAIL,
@@ -66,7 +66,7 @@ describe(checkMailAddressDuplication.name, () => {
     );
   });
 
-  test("**excluding が自分自身なら重複と見なさないこと**", async () => {
+  test("**excluding が自分自身の場合、重複と見なさないこと**", async () => {
     // これが無いと「メールアドレスを変えない更新」が常に 409 になる。
     const result = await checkMailAddressDuplication(
       repositoryReturning(makeUser(SELF)),
@@ -77,7 +77,7 @@ describe(checkMailAddressDuplication.name, () => {
     expect(result.isOk()).toBe(true);
   });
 
-  test("excluding を渡しても、他人が使っていれば落ちること", async () => {
+  test("excluding を渡しても他人が使っている場合、落ちること", async () => {
     const result = await checkMailAddressDuplication(
       repositoryReturning(makeUser(OTHER)),
       MAIL,
@@ -87,7 +87,7 @@ describe(checkMailAddressDuplication.name, () => {
     expect(result.isOk()).toBe(false);
   });
 
-  test("引き当てに失敗したら、その失敗をそのまま返すこと", async () => {
+  test("引き当てに失敗した場合、その失敗をそのまま返すこと", async () => {
     // 重複の有無を判断できない状態を「重複なし」に畳むと、素通りしてしまう。
     const deps = {
       userRepository: {

@@ -105,7 +105,7 @@ const secondsBefore = (seconds: number): Date =>
 
 describe(refreshController.name, () => {
   describe("正常系", () => {
-    test("使える券なら 200。本文は accessToken だけで、券は Cookie で差し替わること", async () => {
+    test("使える券の場合、200 を返し本文は accessToken だけで券は Cookie で差し替わること", async () => {
       const stored = makeStored();
       const { deps, rotated } = recording(stored);
 
@@ -136,7 +136,7 @@ describe(refreshController.name, () => {
       expect(rotated[0]?.issued.userId).toBe(stored.userId);
     });
 
-    test("ローテーション済みでも猶予の内なら締め出さないこと", async () => {
+    test("ローテーション済みでも猶予の内の場合、締め出さないこと", async () => {
       const { deps, rotated } = recording(
         makeStored({
           revokedAt: secondsBefore(5),
@@ -154,7 +154,7 @@ describe(refreshController.name, () => {
   });
 
   describe("異常系", () => {
-    test("猶予の外で再利用されたら 401。セッションごと切ること", async () => {
+    test("猶予の外で再利用された場合、401 を返しセッションごと切ること", async () => {
       const stored = makeStored({
         revokedAt: secondsBefore(60),
         revokedReason: RevokedReasonEnum.Rotated,
@@ -171,7 +171,7 @@ describe(refreshController.name, () => {
       ]);
     });
 
-    test("既に切られた券は 401。切り直しもしないこと", async () => {
+    test("既に切られた券の場合、401 を返し切り直しもしないこと", async () => {
       const { deps, rotated, revoked } = recording(
         makeStored({
           revokedAt: secondsBefore(5),
@@ -187,7 +187,7 @@ describe(refreshController.name, () => {
       expect(revoked).toStrictEqual([]);
     });
 
-    test("期限切れは 401。差し替えも失効も走らないこと", async () => {
+    test("期限切れの場合、401 を返し差し替えも失効も走らないこと", async () => {
       const { deps, rotated, revoked } = recording(
         makeStored({ expiresAt: secondsBefore(1) }),
       );
@@ -199,7 +199,7 @@ describe(refreshController.name, () => {
       expect(revoked).toStrictEqual([]);
     });
 
-    test("失敗の理由が違っても、応答が 1 種類しか無いこと", async () => {
+    test("失敗の理由が違う場合でも、応答が 1 種類しか無いこと", async () => {
       const send = [
         // 知らない券
         async () => await refresh(recording().deps),
@@ -242,7 +242,7 @@ describe(refreshController.name, () => {
       }
     });
 
-    test("Cookie が無ければ、使える券が保存されていても 401 で打ち切ること", async () => {
+    test("Cookie が無い場合、使える券が保存されていても 401 で打ち切ること", async () => {
       // 保存側は「常に使える券を返す」ので、**引きに行けば 200 になってしまう**。
       // それでも 401 で終わることが「Cookie が無い時点で打ち切っている」証拠になる。
       const { deps, rotated, revoked } = recording(makeStored());

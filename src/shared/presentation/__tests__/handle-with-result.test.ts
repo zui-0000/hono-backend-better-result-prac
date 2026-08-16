@@ -13,7 +13,7 @@ import { HttpStatus } from "~/shared/presentation/constants/http-status";
 import { handleWithResult } from "../handle-with-result";
 
 describe(handleWithResult.name, () => {
-  test("throw されても契約どおりの 500 と相関 ID を返すこと", async () => {
+  test("throw された場合でも、契約どおりの 500 と相関 ID を返すこと", async () => {
     // 放っておくと Hono 既定の平文 500 が返り、契約と違う形になったうえ
     // ログも残らない。**この受け皿 1 つで全 throw を覆う。**
     const deps = makeDeps({
@@ -37,7 +37,7 @@ describe(handleWithResult.name, () => {
     expect(response.headers.get(HttpHeader.RequestId)).toBe(REQUEST_ID);
   });
 
-  test("応答が契約とズレたら 500 になること (握り潰さない)", async () => {
+  test("応答が契約とズレた場合、500 になること (握り潰さない)", async () => {
     // クエリ側はドメインを経由しないので、ここが唯一の関所。
     const deps = makeDeps({
       getUserQueryService: {
@@ -56,7 +56,7 @@ describe(handleWithResult.name, () => {
     expect(response.status).toBe(HttpStatus.InternalServerError);
   });
 
-  test("204 に本文も Content-Type も付かないこと", async () => {
+  test("204 の場合、本文も Content-Type も付かないこと", async () => {
     const deps = makeDeps({
       userRepository: {
         findById: async () => Result.ok(makeUser()),

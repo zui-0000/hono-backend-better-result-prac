@@ -15,7 +15,7 @@ const get = async (deps: AppDeps, id: string = FIXED_UUID): Promise<Response> =>
   await app(deps).request(`/users/${id}`, { headers });
 
 describe(getUserController.name, () => {
-  test("本人なら 200 と射影を返すこと", async () => {
+  test("本人の場合、200 と射影を返すこと", async () => {
     const deps = makeDeps({
       getUserQueryService: {
         execute: async () =>
@@ -33,7 +33,7 @@ describe(getUserController.name, () => {
     });
   });
 
-  test("他人の id なら 403。**DB を引かずに落ちること**", async () => {
+  test("他人の id の場合、403 を返し**DB を引かずに落ちること**", async () => {
     let queried = 0;
     const deps = makeDeps({
       getUserQueryService: {
@@ -51,7 +51,7 @@ describe(getUserController.name, () => {
     expect(queried).toBe(0);
   });
 
-  test("存在しなければ 404 を返すこと", async () => {
+  test("存在しない場合、404 を返すこと", async () => {
     const response = await get(makeDeps());
 
     expect(response.status).toBe(HttpStatus.NotFound);
@@ -60,7 +60,7 @@ describe(getUserController.name, () => {
     );
   });
 
-  test("id が uuid でなければ 400 を返すこと", async () => {
+  test("id が uuid でない場合、400 を返すこと", async () => {
     const response = await get(makeDeps(), "not-a-uuid");
 
     expect(response.status).toBe(HttpStatus.BadRequest);

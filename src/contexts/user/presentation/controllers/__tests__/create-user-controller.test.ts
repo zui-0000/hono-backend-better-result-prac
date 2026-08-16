@@ -39,7 +39,7 @@ const post = async (
 
 describe(createUserController.name, () => {
   describe("正常系", () => {
-    test("201 と採番した id を返し、ハッシュ済みで保存すること", async () => {
+    test("メールアドレスが空いている場合、201 と採番した id を返しハッシュ済みで保存すること", async () => {
       const created: User[] = [];
       const deps = makeDeps({
         userRepository: {
@@ -67,7 +67,7 @@ describe(createUserController.name, () => {
   });
 
   describe("異常系", () => {
-    test("メールアドレスが重複していれば 409 を返し、保存しないこと", async () => {
+    test("メールアドレスが重複している場合、409 を返し保存しないこと", async () => {
       const created: User[] = [];
       const deps = makeDeps({
         userRepository: {
@@ -111,7 +111,7 @@ describe(createUserController.name, () => {
       ).toStrictEqual([{ field: "-", message: expect.any(String) }]);
     });
 
-    test("契約に反する入力は 400 と違反フィールドを返すこと", async () => {
+    test("契約に反する入力の場合、400 と違反フィールドを返すこと", async () => {
       const response = await post(makeDeps(), {
         name: "",
         mailAddress: "not-a-mail",

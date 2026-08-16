@@ -28,15 +28,15 @@ const get = async (
   });
 
 describe(verifyBearer.name, () => {
-  test("Bearer が無ければ 401", async () => {
+  test("Bearer が無い場合、401 を返すこと", async () => {
     expect((await get()).status).toBe(HttpStatus.Unauthorized);
   });
 
-  test("Bearer 形式でなければ 401", async () => {
+  test("Bearer 形式でない場合、401 を返すこと", async () => {
     expect((await get(FAKE_ACCESS_TOKEN)).status).toBe(HttpStatus.Unauthorized);
   });
 
-  test("検証に失敗すれば 401。理由は本文に出さないこと", async () => {
+  test("検証に失敗した場合、401 を返し理由は本文に出さないこと", async () => {
     const deps = makeDeps({
       accessTokenIssuer: {
         verify: async () => Result.err(new UnauthorizedError()),
@@ -52,7 +52,7 @@ describe(verifyBearer.name, () => {
     );
   });
 
-  test("認証は契約検証より先に走ること", async () => {
+  test("認証と契約検証の両方が失敗する場合、認証を先に走らせること", async () => {
     // 通っていない相手には契約の話を一切しない (400 の errors は
     // フィールド名と制約をそのまま返すため)。
     const response = await app(makeDeps()).request("/users/not-a-uuid", {

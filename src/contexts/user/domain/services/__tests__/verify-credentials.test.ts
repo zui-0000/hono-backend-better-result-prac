@@ -46,7 +46,7 @@ const deps = (
 });
 
 describe(verifyCredentials.name, () => {
-  test("一致すればその利用者の id を返すこと", async () => {
+  test("一致する場合、その利用者の id を返すこと", async () => {
     const result = await verifyCredentials(deps(user, true), {
       mailAddress: MAIL,
       password: PLAIN,
@@ -55,7 +55,7 @@ describe(verifyCredentials.name, () => {
     expect(result.isOk() ? result.value : null).toBe(ID);
   });
 
-  test("**「居ない」と「合わない」がどちらも undefined になること**", async () => {
+  test("**居ない場合と合わない場合で、どちらも undefined になること**", async () => {
     // 書き分けると、総当たりでメールアドレスの登録有無を判定できてしまう
     // (アカウント列挙)。ここで畳んでいることが防御の実体。
     const notFound = await verifyCredentials(deps(undefined, true), {
@@ -71,7 +71,7 @@ describe(verifyCredentials.name, () => {
     expect(wrongPassword.isOk() ? wrongPassword.value : "err").toBeUndefined();
   });
 
-  test("**パスワードが違うことを失敗にしないこと**", async () => {
+  test("パスワードが違う場合、**失敗ではなく undefined を返すこと**", async () => {
     // 401 へ翻訳するのは呼び出し側の責務。ここで失敗にすると、
     // 「居ない」と「合わない」が型のうえで分かれてしまう。
     const result = await verifyCredentials(deps(user, false), {
@@ -82,7 +82,7 @@ describe(verifyCredentials.name, () => {
     expect(result.isOk()).toBe(true);
   });
 
-  test("居なければ照合そのものを行わないこと", async () => {
+  test("居ない場合、照合そのものを行わないこと", async () => {
     let verified = 0;
     const d: Parameters<typeof verifyCredentials>[0] = {
       userRepository: {
@@ -103,7 +103,7 @@ describe(verifyCredentials.name, () => {
     expect(verified).toBe(0);
   });
 
-  test("引き当てに失敗したら、その失敗をそのまま返すこと", async () => {
+  test("引き当てに失敗した場合、その失敗をそのまま返すこと", async () => {
     const d: Parameters<typeof verifyCredentials>[0] = {
       userRepository: {
         findByMailAddress: async () =>

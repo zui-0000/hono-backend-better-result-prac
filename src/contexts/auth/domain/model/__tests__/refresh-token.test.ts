@@ -62,7 +62,7 @@ describe(createRefreshToken.name, () => {
     expect(create().expiresAt).toStrictEqual(new Date(NOW.getTime() + twoDays));
   });
 
-  test("発行直後は失効していないこと", () => {
+  test("失効していない状態で返すこと", () => {
     // ここが null でないと、発行したその場で classifyRefreshToken が
     // revoked/reused へ倒れて、ログインした瞬間に使えない券が配られる。
     const created = create();
@@ -74,7 +74,7 @@ describe(createRefreshToken.name, () => {
     );
   });
 
-  test("券ごとに id を採番し、セッションは渡されたものを引き継ぐこと", () => {
+  test("id は採番し、セッションは渡されたものを引き継ぐこと", () => {
     // 券の id はローテーションのたびに変わるが、セッションは変えない。
     // ここで採番してしまうと、古いタブからのログアウトが空振りする。
     const created = create();
@@ -102,7 +102,7 @@ describe(revokeRefreshToken.name, () => {
     expect(revoked.revokedReason).toBe(RevokedReasonEnum.Revoked);
   });
 
-  test("理由をそのまま渡すこと (rotated を revoked に丸めない)", () => {
+  test("rotated を渡した場合、丸めずにそのまま記録すること", () => {
     // 丸めると猶予期間が消え、並行更新したタブが締め出される。逆に revoked を
     // rotated にすると、切ったはずのセッションが 30 秒生き返る。
     const rotated = revokeRefreshToken(
@@ -145,13 +145,13 @@ describe(revokeRefreshToken.name, () => {
 });
 
 describe(classifyRefreshToken.name, () => {
-  test("失効しておらず期限内なら usable", () => {
+  test("失効しておらず期限内の場合、usable と判定すること", () => {
     expect(classifyRefreshToken({ clock }, makeToken())).toBe(
       RefreshTokenState.Usable,
     );
   });
 
-  test("期限切れは、失効の有無より先に expired", () => {
+  test("期限切れの場合、失効の有無より先に expired と判定すること", () => {
     // 期限を先に見るのは、切れた券に猶予期間を与えないため。
     const token = makeToken({
       expiresAt: secondsAgo(1),
@@ -164,7 +164,7 @@ describe(classifyRefreshToken.name, () => {
     );
   });
 
-  test("ローテーション済みで 30 秒ちょうどは猶予の内側", () => {
+  test("ローテーション済みで 30 秒ちょうどの場合、within-grace と判定すること", () => {
     // 境界を内側に倒す。並行更新したタブを締め出さないため。
     const token = makeToken({
       revokedAt: secondsAgo(30),
@@ -176,7 +176,7 @@ describe(classifyRefreshToken.name, () => {
     );
   });
 
-  test("ローテーション済みで 30 秒を超えたら再利用 (盗難のサイン)", () => {
+  test("ローテーション済みで 30 秒を超えた場合、reused と判定すること (盗難のサイン)", () => {
     const token = makeToken({
       revokedAt: secondsAgo(31),
       revokedReason: RevokedReasonEnum.Rotated,
@@ -187,7 +187,7 @@ describe(classifyRefreshToken.name, () => {
     );
   });
 
-  test("理由が revoked なら、猶予期間の内でも revoked", () => {
+  test("理由が revoked の場合、猶予の内でも revoked と判定すること", () => {
     // **ここが要。** 時刻だけで判定すると、ログアウトや盗難検出で切った券が
     // 30 秒間通ってしまい、切ったはずのセッションが生き返る (実際に踏んだ穴)。
     const token = makeToken({
@@ -200,7 +200,7 @@ describe(classifyRefreshToken.name, () => {
     );
   });
 
-  test("理由が読めない行は revoked に倒すこと", () => {
+  test("理由が読めない場合、revoked に倒すこと", () => {
     // 迷ったら猶予を与えないほうが安全側に落ちる。
     const token = makeToken({ revokedAt: secondsAgo(5), revokedReason: null });
 

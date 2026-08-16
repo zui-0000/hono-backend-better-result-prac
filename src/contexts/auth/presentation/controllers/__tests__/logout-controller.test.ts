@@ -47,7 +47,7 @@ const logout = async (
   });
 
 describe(logoutController.name, () => {
-  test("204 を返し、その sid でセッションを切ること", async () => {
+  test("204 を返し、その sessionId でセッションを切ること", async () => {
     const { deps, revoked } = recording();
 
     const response = await logout(deps);
@@ -76,7 +76,7 @@ describe(logoutController.name, () => {
     expect(setCookie).toContain("SameSite=Lax");
   });
 
-  test("204 なのに本文が生えないこと (Cookie を載せても)", async () => {
+  test("Cookie を載せた場合でも、204 に本文が生えないこと", async () => {
     const { deps } = recording();
 
     const response = await logout(deps);
@@ -86,7 +86,7 @@ describe(logoutController.name, () => {
     expect(response.headers.get("content-type")).toBeNull();
   });
 
-  test("Bearer が無ければ 401。失効も走らないこと", async () => {
+  test("Bearer が無い場合、401 を返し失効も走らないこと", async () => {
     const { deps, revoked } = recording();
 
     const response = await logout(deps, {

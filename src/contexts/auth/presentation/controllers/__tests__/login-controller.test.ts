@@ -36,7 +36,7 @@ const login = async (
   });
 
 describe(loginController.name, () => {
-  test("照合できれば 200。券は本文と Cookie に振り分けること", async () => {
+  test("照合できた場合、200 を返し券を本文と Cookie に振り分けること", async () => {
     const created: RefreshToken[] = [];
     const issued: { userId: string; sessionId: string }[] = [];
     const deps = makeDeps({
@@ -81,7 +81,7 @@ describe(loginController.name, () => {
     expect(issued[0]?.userId).toBe(OTHER_UUID);
   });
 
-  test("照合できなければ 401。Cookie も出さないこと", async () => {
+  test("照合できない場合、401 を返し Cookie も出さないこと", async () => {
     // 既定の fake は undefined = 照合できない。「居ない」と「合わない」は
     // user 側で畳まれているので、ここからは区別のしようがない。
     const response = await login(makeDeps());
@@ -93,7 +93,7 @@ describe(loginController.name, () => {
     );
   });
 
-  test("契約に反する入力は 400", async () => {
+  test("契約に反する入力の場合、400 を返すこと", async () => {
     const response = await login(makeDeps(), {
       mailAddress: "x",
       password: "short",

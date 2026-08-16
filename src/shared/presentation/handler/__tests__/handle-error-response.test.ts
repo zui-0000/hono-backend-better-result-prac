@@ -141,7 +141,7 @@ const SCHEMA_BY_TAG: Readonly<Record<string, z.ZodType | undefined>> = {
 
 describe(handleErrorResponse.name, () => {
   test.each(CASES)(
-    "%s は %i / code %s を返すこと",
+    "%s の場合、%i と code %s を返すこと",
     (_tag, status, code, title, error) => {
       const response = handleErrorResponse(error);
 
@@ -152,7 +152,7 @@ describe(handleErrorResponse.name, () => {
   );
 
   test.each(CASES)(
-    "%s はステータス行とボディに同じ %i を載せること",
+    "%s の場合、ステータス行とボディに同じ %i を載せること",
     (_tag, status, _code, _title, error) => {
       // 契約が status を 2 箇所に持つので、実装も 2 箇所へ出す。
       // 組み立ては errorResponse 1 箇所に閉じているが、**閉じ続けている**ことを
@@ -165,7 +165,7 @@ describe(handleErrorResponse.name, () => {
   );
 
   test.each(CASES.filter(([tag]) => SCHEMA_BY_TAG[tag] !== undefined))(
-    "%s の応答が契約の形を満たすこと",
+    "%s の場合、応答が契約の形を満たすこと",
     (tag, _status, _code, _title, error) => {
       const schema = SCHEMA_BY_TAG[tag];
       const parsed = schema?.safeParse(handleErrorResponse(error).body);
@@ -196,7 +196,7 @@ describe(handleErrorResponse.name, () => {
     expect(CASES).toHaveLength(9);
   });
 
-  test("500 の 2 つが外から区別できないこと", () => {
+  test("RepositoryError と InternalServerError の場合、外から区別できないこと", () => {
     // RepositoryError と InternalServerError は事由が違うが、**どこで壊れたかを
     // 客に教えない**。原因は logFailure がログにのみ残す。
     const repository = handleErrorResponse(
@@ -209,7 +209,7 @@ describe(handleErrorResponse.name, () => {
     expect(repository).toStrictEqual(internal);
   });
 
-  test("errors は持っているときだけ載せること", () => {
+  test("errors を持っている場合だけ、載せること", () => {
     // 契約上も任意項目。空配列やキーだけの undefined を返さない。
     const withErrors = handleErrorResponse(
       new BadRequestError({
