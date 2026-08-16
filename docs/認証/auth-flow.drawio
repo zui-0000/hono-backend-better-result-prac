@@ -1,0 +1,800 @@
+<mxfile host="Electron" type="device">
+  <diagram id="page-1" name="1-全体像">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1150" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="p0-0" />
+        <mxCell id="p0-1" parent="p0-0" />
+        <mxCell id="c1" value="認証の全体像 — 券は 2 枚ある" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p0-1">
+          <mxGeometry x="40" y="30" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" value="ブラウザ" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=none;strokeColor=#888888;dashed=1;verticalAlign=top;fontStyle=1;spacingTop=8;fontSize=14;" vertex="1" parent="p0-1">
+          <mxGeometry x="60" y="100" width="330" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" value="アクセストークン (JWT)&lt;br&gt;&lt;br&gt;保管: クライアントのメモリ (想定)&lt;br&gt;寿命: &lt;b&gt;1 時間&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p0-1">
+          <mxGeometry x="85" y="160" width="280" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" value="リフレッシュトークン (乱数)&lt;br&gt;&lt;br&gt;保管: Cookie (&lt;b&gt;HttpOnly&lt;/b&gt;)&lt;br&gt;寿命: &lt;b&gt;2 日&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p0-1">
+          <mxGeometry x="85" y="305" width="280" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" value="サーバ" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=none;strokeColor=#888888;dashed=1;verticalAlign=top;fontStyle=1;spacingTop=8;fontSize=14;" vertex="1" parent="p0-1">
+          <mxGeometry x="710" y="100" width="350" height="350" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" value="署名と有効期限を見るだけ&lt;br&gt;&lt;b&gt;DB を引かない&lt;/b&gt;&lt;br&gt;(HS256 / 鍵は 32 文字以上)" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p0-1">
+          <mxGeometry x="735" y="160" width="300" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="c7" value="SHA-256 にして照合&lt;br&gt;t_refresh_token&lt;br&gt;&lt;b&gt;券そのものは保存しない&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p0-1">
+          <mxGeometry x="735" y="305" width="300" height="115" as="geometry" />
+        </mxCell>
+        <mxCell id="c8" value="Authorization: Bearer …&lt;br&gt;すべての保護 API" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#6c8ebf;labelBackgroundColor=none;" edge="1" parent="p0-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="390" y="212" as="sourcePoint" />
+            <mxPoint x="710" y="212" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c9" value="Cookie: refresh_token&lt;br&gt;&lt;b&gt;POST /auth/refresh だけ&lt;/b&gt;" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=none;" edge="1" parent="p0-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="390" y="360" as="sourcePoint" />
+            <mxPoint x="710" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c10" value="なぜ 2 枚に分けるか — 毎回の API に流すのは短命な券だけにして、長命な券は 1 経路にしか流さない。&lt;br&gt;アクセス券が漏れても 1 時間で切れ、リフレッシュ券は HttpOnly なので XSS を踏んでも JS から読めない。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p0-1">
+          <mxGeometry x="60" y="490" width="1000" height="70" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-2" name="2-ログイン">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1150" pageHeight="715" math="0" shadow="0">
+      <root>
+        <mxCell id="p1-0" />
+        <mxCell id="p1-1" parent="p1-0" />
+        <mxCell id="c11" value="ログイン — 2 枚の券を発行する" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p1-1">
+          <mxGeometry x="40" y="20" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c12" value="クライアント" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p1-1">
+          <mxGeometry x="40" y="70" width="150" height="575" as="geometry" />
+        </mxCell>
+        <mxCell id="c13" value="auth コンテキスト" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p1-1">
+          <mxGeometry x="300" y="70" width="200" height="575" as="geometry" />
+        </mxCell>
+        <mxCell id="c14" value="user コンテキスト" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p1-1">
+          <mxGeometry x="620" y="70" width="180" height="575" as="geometry" />
+        </mxCell>
+        <mxCell id="c15" value="DB  t_refresh_token" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p1-1">
+          <mxGeometry x="890" y="70" width="180" height="575" as="geometry" />
+        </mxCell>
+        <mxCell id="c16" value="POST /auth/login  {mailAddress, password}" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="115" y="155" as="sourcePoint" />
+            <mxPoint x="400" y="155" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c17" value="verifyCredentials(mailAddress, password)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="205" as="sourcePoint" />
+            <mxPoint x="710" y="205" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c18" value="userId、居なければ undefined" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="710" y="247" as="sourcePoint" />
+            <mxPoint x="400" y="247" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c19" value="undefined なら 401。&lt;br&gt;&lt;b&gt;「居ない」と「合わない」を畳んである&lt;/b&gt; —&lt;br&gt;書き分けると相手の実在を教えてしまう" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p1-1">
+          <mxGeometry x="255" y="265" width="290" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="c20" value="sessionId を採番 (UUIDv7)" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p1-1">
+          <mxGeometry x="255" y="345" width="290" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c21" value="リフレッシュ券 = 予測できない乱数&lt;br&gt;&lt;b&gt;保存するのはその SHA-256 だけ&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p1-1">
+          <mxGeometry x="255" y="397" width="290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c22" value="INSERT (token_hash, session_id, user_id, expires_at)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="480" as="sourcePoint" />
+            <mxPoint x="980" y="480" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c23" value="JWT に署名   {sub, sid, iat, exp}&lt;br&gt;HS256 / 1 時間" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p1-1">
+          <mxGeometry x="255" y="500" width="290" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c24" value="200 {accessToken}&lt;br&gt;Set-Cookie: refresh_token  (HttpOnly, Path=/auth/refresh)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="615" as="sourcePoint" />
+            <mxPoint x="115" y="615" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c25" value="ログインのたびに sessionId を採番する。据え置くと更新のたびにログアウトの単位が変わってしまう。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p1-1">
+          <mxGeometry x="40" y="660" width="1030" height="34" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-3" name="3-保護された API">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1150" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="p2-0" />
+        <mxCell id="p2-1" parent="p2-0" />
+        <mxCell id="c26" value="保護された API — DB を引かずに「誰か」を決める" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p2-1">
+          <mxGeometry x="40" y="20" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c27" value="クライアント" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p2-1">
+          <mxGeometry x="40" y="70" width="150" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="c28" value="verifyBearer&lt;br&gt;(shared/presentation)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p2-1">
+          <mxGeometry x="300" y="70" width="220" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="c29" value="controller / command" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p2-1">
+          <mxGeometry x="640" y="70" width="200" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="c30" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p2-1">
+          <mxGeometry x="920" y="70" width="150" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="c31" value="GET /users/{id}&lt;br&gt;Authorization: Bearer …" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p2-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="115" y="165" as="sourcePoint" />
+            <mxPoint x="410" y="165" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c32" value="署名と exp を検証する&lt;br&gt;&lt;b&gt;アルゴリズムを HS256 に固定&lt;/b&gt; —&lt;br&gt;alg:none を名乗る券はここで落ちる" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p2-1">
+          <mxGeometry x="255" y="185" width="310" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="c33" value="失敗 → 401  (&lt;b&gt;DB は引かない&lt;/b&gt;)" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p2-1">
+          <mxGeometry x="255" y="265" width="310" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c34" value="JWT の sub / sid を&lt;br&gt;AuthenticatedCaller {userId, sessionId} に直す" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p2-1">
+          <mxGeometry x="255" y="317" width="310" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c35" value="auth = {userId, sessionId}" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p2-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="410" y="400" as="sourcePoint" />
+            <mxPoint x="740" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c36" value="checkUserIsSelf(target, actor)&lt;br&gt;別人の id なら 403" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p2-1">
+          <mxGeometry x="610" y="420" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c37" value="SELECT …" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p2-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="510" as="sourcePoint" />
+            <mxPoint x="995" y="510" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c38" value="" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p2-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="995" y="545" as="sourcePoint" />
+            <mxPoint x="740" y="545" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c39" value="200" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p2-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="610" as="sourcePoint" />
+            <mxPoint x="115" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c40" value="&lt;b&gt;ここまでセッションの生死を DB に問い合わせない。&lt;/b&gt; それが速さの理由であり、同時に弱点でもある —&lt;br&gt;ログアウトしても、発行済みのアクセス券は最大 1 時間そのまま通る。1 時間という寿命はその許容量そのもの。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p2-1">
+          <mxGeometry x="40" y="665" width="1030" height="62" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-4" name="4-リフレッシュ">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="940" pageHeight="735" math="0" shadow="0">
+      <root>
+        <mxCell id="p3-0" />
+        <mxCell id="p3-1" parent="p3-0" />
+        <mxCell id="c41" value="リフレッシュ — 使うたびに券を差し替える" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p3-1">
+          <mxGeometry x="40" y="20" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c42" value="クライアント" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p3-1">
+          <mxGeometry x="40" y="70" width="150" height="570" as="geometry" />
+        </mxCell>
+        <mxCell id="c43" value="auth コンテキスト" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p3-1">
+          <mxGeometry x="300" y="70" width="200" height="570" as="geometry" />
+        </mxCell>
+        <mxCell id="c44" value="DB  t_refresh_token" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p3-1">
+          <mxGeometry x="640" y="70" width="220" height="570" as="geometry" />
+        </mxCell>
+        <mxCell id="c45" value="POST /auth/refresh&lt;br&gt;Cookie: refresh_token" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p3-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="115" y="165" as="sourcePoint" />
+            <mxPoint x="400" y="165" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c46" value="提示された券を SHA-256 にする" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p3-1">
+          <mxGeometry x="260" y="185" width="280" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c47" value="SELECT WHERE token_hash = ?" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p3-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="250" as="sourcePoint" />
+            <mxPoint x="750" y="250" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c48" value="該当する行、無ければ undefined" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p3-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="750" y="288" as="sourcePoint" />
+            <mxPoint x="400" y="288" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c49" value="なし → 401&lt;br&gt;&lt;b&gt;知らない券も、下の 401 と同じ本文&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p3-1">
+          <mxGeometry x="260" y="306" width="280" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c50" value="classifyRefreshToken()  → usable&lt;br&gt;(判定は次ページ)" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p3-1">
+          <mxGeometry x="260" y="376" width="280" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c51" value="旧行を revoked (reason = rotated) + 新行を INSERT&lt;br&gt;&lt;b&gt;1 トランザクション&lt;/b&gt;" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p3-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="470" as="sourcePoint" />
+            <mxPoint x="750" y="470" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c52" value="JWT を再署名&lt;br&gt;&lt;b&gt;sessionId は据え置く&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p3-1">
+          <mxGeometry x="260" y="490" width="280" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c53" value="200 {accessToken}&lt;br&gt;Set-Cookie: 新しい refresh_token" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p3-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="400" y="610" as="sourcePoint" />
+            <mxPoint x="115" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c54" value="セッションを採番し直さないのは、ログアウトの単位を変えないため。券の id は差し替えのたびに変わるが、&lt;br&gt;sessionId はログインからログアウトまで不変。失効と発行を 1 トランザクションにするのは、間で落ちると再ログインしか道が無くなるから。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p3-1">
+          <mxGeometry x="40" y="655" width="860" height="62" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-5" name="5-券の状態判定">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1010" pageHeight="990" math="0" shadow="0">
+      <root>
+        <mxCell id="p4-0" />
+        <mxCell id="p4-1" parent="p4-0" />
+        <mxCell id="c55" value="提示されたリフレッシュ券をどう扱うか" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p4-1">
+          <mxGeometry x="30" y="20" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c56" value="POST /auth/refresh" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="70" width="240" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="c57" value="Cookie があって、&lt;br&gt;ハッシュで引ける?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="145" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c58" value="expires_at を&lt;br&gt;過ぎている?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="270" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c59" value="revoked_at は&lt;br&gt;NULL?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="395" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c60" value="revoked_reason は&lt;br&gt;rotated?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="520" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="c61" value="失効から&lt;br&gt;30 秒以内?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="655" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c62" value="&lt;b&gt;reused&lt;/b&gt; — 盗難のサイン" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p4-1">
+          <mxGeometry x="340" y="790" width="240" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c63" value="Cookie が無い / 知らない券&lt;br&gt;→ 401" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p4-1">
+          <mxGeometry x="690" y="163" width="280" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c64" value="&lt;b&gt;expired&lt;/b&gt; → 401" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p4-1">
+          <mxGeometry x="690" y="288" width="280" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c65" value="&lt;b&gt;revoked&lt;/b&gt; → 401&lt;br&gt;ログアウト / 盗難検出で切った行" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p4-1">
+          <mxGeometry x="690" y="538" width="280" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="c66" value="&lt;b&gt;そのセッションを丸ごと失効&lt;/b&gt;&lt;br&gt;してから 401" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p4-1">
+          <mxGeometry x="690" y="790" width="280" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="c67" value="&lt;b&gt;usable&lt;/b&gt; → ローテーション" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p4-1">
+          <mxGeometry x="30" y="413" width="270" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c68" value="&lt;b&gt;within-grace&lt;/b&gt; → ローテーション&lt;br&gt;並行して更新したタブの救済" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p4-1">
+          <mxGeometry x="30" y="668" width="270" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="c69" value="" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="114" as="sourcePoint" />
+            <mxPoint x="460" y="145" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c70" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="235" as="sourcePoint" />
+            <mxPoint x="460" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c71" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="360" as="sourcePoint" />
+            <mxPoint x="460" y="395" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c72" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="485" as="sourcePoint" />
+            <mxPoint x="460" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c73" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="620" as="sourcePoint" />
+            <mxPoint x="460" y="655" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c74" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="745" as="sourcePoint" />
+            <mxPoint x="460" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c75" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="190" as="sourcePoint" />
+            <mxPoint x="690" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c76" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="315" as="sourcePoint" />
+            <mxPoint x="690" y="315" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c77" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="570" as="sourcePoint" />
+            <mxPoint x="690" y="570" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c78" value="" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="820" as="sourcePoint" />
+            <mxPoint x="690" y="820" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c79" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="340" y="440" as="sourcePoint" />
+            <mxPoint x="300" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c80" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=#ffffff;" edge="1" parent="p4-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="340" y="700" as="sourcePoint" />
+            <mxPoint x="300" y="700" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c81" value="&lt;b&gt;見る順に意味がある。&lt;/b&gt; 期限を先に見るのは、切れた券に猶予を与えないため。理由が読めない行 (時刻はあるのに reason が無い) は&lt;br&gt;revoked に倒す — 迷ったら猶予を与えないほうが安全側に落ちる。猶予 30 秒は、同時に更新した別タブを盗難として切らないための救済。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p4-1">
+          <mxGeometry x="30" y="890" width="940" height="66" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-6" name="6-通しのフロー">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1030" pageHeight="1700" math="0" shadow="0">
+      <root>
+        <mxCell id="p5-0" />
+        <mxCell id="p5-1" parent="p5-0" />
+        <mxCell id="c82" value="作成 → ログイン → 認証 → リフレッシュ → ログアウト" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="30" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c83" value="フロントの JS&lt;br&gt;(メモリに accessToken)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p5-1">
+          <mxGeometry x="40" y="80" width="200" height="1520" as="geometry" />
+        </mxCell>
+        <mxCell id="c84" value="ブラウザの Cookie 保管庫&lt;br&gt;JS からは見えない" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p5-1">
+          <mxGeometry x="300" y="80" width="220" height="1520" as="geometry" />
+        </mxCell>
+        <mxCell id="c85" value="API サーバ" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p5-1">
+          <mxGeometry x="590" y="80" width="170" height="1520" as="geometry" />
+        </mxCell>
+        <mxCell id="c86" value="DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=0;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fontSize=13;fontStyle=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p5-1">
+          <mxGeometry x="850" y="80" width="150" height="1520" as="geometry" />
+        </mxCell>
+        <mxCell id="c87" value="①  ユーザー作成" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=12;fontStyle=1;fontSize=14;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="135" width="990" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="c88" value="POST /users   {name, mailAddress, password}" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="205" as="sourcePoint" />
+            <mxPoint x="675" y="205" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c89" value="INSERT t_user   (パスワードは argon2 で保存)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="240" as="sourcePoint" />
+            <mxPoint x="925" y="240" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c90" value="201 {id}" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="275" as="sourcePoint" />
+            <mxPoint x="140" y="275" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c91" value="いま持っているもの —  メモリ: なし  /  Cookie: なし　　←　&lt;b&gt;作成しても券は出ない。ログインは別の操作。&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=12;fontSize=12;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="295" width="990" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c92" value="②  ログイン" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=12;fontStyle=1;fontSize=14;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="345" width="990" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="c93" value="POST /auth/login   {mailAddress, password}" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="415" as="sourcePoint" />
+            <mxPoint x="675" y="415" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c94" value="INSERT t_refresh_token   (保存するのは SHA-256 だけ)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="450" as="sourcePoint" />
+            <mxPoint x="925" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c95" value="200 {accessToken}" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="485" as="sourcePoint" />
+            <mxPoint x="140" y="485" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c96" value="Set-Cookie: refresh_token   (HttpOnly)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="520" as="sourcePoint" />
+            <mxPoint x="410" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c97" value="いま持っているもの —  メモリ: accessToken (1 時間)  /  Cookie: refresh_token (2 日・使うたびに延びる)" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=12;fontSize=12;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="540" width="990" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c98" value="③  認証が要る API を呼ぶ" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=12;fontStyle=1;fontSize=14;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="590" width="990" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="c99" value="GET /users/{id}   Authorization: Bearer …" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="660" as="sourcePoint" />
+            <mxPoint x="675" y="660" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c100" value="署名と exp を検証。&lt;b&gt;DB は引かない&lt;/b&gt;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p5-1">
+          <mxGeometry x="545" y="680" width="260" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c101" value="200 {user}" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="745" as="sourcePoint" />
+            <mxPoint x="140" y="745" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c102" value="いま持っているもの —  変化なし" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=12;fontSize=12;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="765" width="990" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c103" value="④  1 時間後 — 期限切れ → リフレッシュ → 再送" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=12;fontStyle=1;fontSize=14;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="815" width="990" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="c104" value="GET /users/{id}   (期限切れの券)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="885" as="sourcePoint" />
+            <mxPoint x="675" y="885" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c105" value="&lt;b&gt;401&lt;/b&gt;" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#b85450;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="920" as="sourcePoint" />
+            <mxPoint x="140" y="920" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c106" value="&lt;b&gt;ここがフロントの要。&lt;/b&gt;&lt;br&gt;401 を見たら 1 回だけ refresh を試す" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p5-1">
+          <mxGeometry x="10" y="940" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c107" value="POST /auth/refresh   fetch(..., { credentials: &quot;include&quot; })" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="1020" as="sourcePoint" />
+            <mxPoint x="675" y="1020" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c108" value="Cookie: refresh_token を&lt;b&gt;ブラウザが自動で添付&lt;/b&gt;" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="410" y="1055" as="sourcePoint" />
+            <mxPoint x="675" y="1055" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c109" value="旧行を失効 + 新行を INSERT   (1 トランザクション)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1090" as="sourcePoint" />
+            <mxPoint x="925" y="1090" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c110" value="200 {accessToken}" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1125" as="sourcePoint" />
+            <mxPoint x="140" y="1125" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c111" value="Set-Cookie: 新しい refresh_token" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1160" as="sourcePoint" />
+            <mxPoint x="410" y="1160" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c112" value="GET /users/{id} を&lt;b&gt;再送&lt;/b&gt;   (新しい券で)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="1195" as="sourcePoint" />
+            <mxPoint x="675" y="1195" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c113" value="200 {user}" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1230" as="sourcePoint" />
+            <mxPoint x="140" y="1230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c114" value="いま持っているもの —  メモリ: 新しい accessToken  /  Cookie: 新しい refresh_token　　←　&lt;b&gt;2 枚とも入れ替わる&lt;/b&gt;" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=12;fontSize=12;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="1250" width="990" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c115" value="⑤  ログアウト" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;align=left;spacingLeft=12;fontStyle=1;fontSize=14;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="1300" width="990" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="c116" value="POST /auth/logout   Authorization: Bearer …" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="140" y="1370" as="sourcePoint" />
+            <mxPoint x="675" y="1370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c117" value="UPDATE revoked_at   (そのセッションだけ)" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1405" as="sourcePoint" />
+            <mxPoint x="925" y="1405" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c118" value="Set-Cookie: refresh_token=;  Max-Age=0" style="html=1;verticalAlign=bottom;endArrow=block;endFill=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=none;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1440" as="sourcePoint" />
+            <mxPoint x="410" y="1440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c119" value="204" style="html=1;verticalAlign=bottom;endArrow=open;endFill=0;dashed=1;rounded=0;fontSize=12;strokeWidth=1.5;strokeColor=#666666;" edge="1" parent="p5-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="675" y="1475" as="sourcePoint" />
+            <mxPoint x="140" y="1475" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c120" value="&lt;b&gt;メモリの accessToken を自分で捨てる。&lt;/b&gt;&lt;br&gt;捨てないと最大 1 時間そのまま通る" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p5-1">
+          <mxGeometry x="10" y="1495" width="260" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c121" value="いま持っているもの —  メモリ: なし  /  Cookie: なし" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;align=left;spacingLeft=12;fontSize=12;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="1560" width="990" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c122" value="&lt;b&gt;緑の矢印はフロントの JS が一切触れない経路。&lt;/b&gt; リフレッシュ券は Cookie 保管庫とサーバの間だけを往復し、&lt;br&gt;JS からは存在すら見えない (HttpOnly)。フロントが手で持つのは短命なアクセストークン 1 枚だけ。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p5-1">
+          <mxGeometry x="20" y="1615" width="990" height="62" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-7" name="7-フロントの 401 処理">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1010" pageHeight="940" math="0" shadow="0">
+      <root>
+        <mxCell id="p6-0" />
+        <mxCell id="p6-1" parent="p6-0" />
+        <mxCell id="c123" value="フロントの責務 — 401 を受けたらどうするか" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p6-1">
+          <mxGeometry x="20" y="25" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c124" value="保護 API を呼ぶ" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="75" width="250" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="c125" value="401 が返った?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="150" width="250" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c126" value="すでに&lt;br&gt;リフレッシュ中?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="270" width="250" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="c127" value="POST /auth/refresh&lt;br&gt;credentials: &quot;include&quot;" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="400" width="250" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c128" value="200 が返った?" style="rhombus;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="485" width="250" height="85" as="geometry" />
+        </mxCell>
+        <mxCell id="c129" value="accessToken を差し替える" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="610" width="250" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="c130" value="&lt;b&gt;元のリクエストを 1 回だけ再送&lt;/b&gt;&lt;br&gt;2 度目の 401 は再試行しない" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="690" width="250" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c131" value="完了" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p6-1">
+          <mxGeometry x="300" y="790" width="250" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="c132" value="そのまま完了" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" vertex="1" parent="p6-1">
+          <mxGeometry x="700" y="170" width="290" height="44" as="geometry" />
+        </mxCell>
+        <mxCell id="c133" value="&lt;b&gt;リフレッシュ券も死んでいる&lt;/b&gt;&lt;br&gt;メモリを捨ててログイン画面へ" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p6-1">
+          <mxGeometry x="700" y="500" width="290" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c134" value="&lt;b&gt;進行中の Promise を待つ&lt;/b&gt;&lt;br&gt;(同時に何本も refresh しない)" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p6-1">
+          <mxGeometry x="20" y="288" width="250" height="54" as="geometry" />
+        </mxCell>
+        <mxCell id="c135" value="" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="119" as="sourcePoint" />
+            <mxPoint x="425" y="150" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c136" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="235" as="sourcePoint" />
+            <mxPoint x="425" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c137" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="360" as="sourcePoint" />
+            <mxPoint x="425" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c138" value="" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="450" as="sourcePoint" />
+            <mxPoint x="425" y="485" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c139" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="570" as="sourcePoint" />
+            <mxPoint x="425" y="610" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c140" value="" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="654" as="sourcePoint" />
+            <mxPoint x="425" y="690" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c141" value="" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="425" y="744" as="sourcePoint" />
+            <mxPoint x="425" y="790" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c142" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#333333;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="192" as="sourcePoint" />
+            <mxPoint x="700" y="192" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c143" value="いいえ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="527" as="sourcePoint" />
+            <mxPoint x="700" y="527" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c144" value="はい" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#d6b656;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="315" as="sourcePoint" />
+            <mxPoint x="270" y="315" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c145" value="" style="html=1;endArrow=none;rounded=0;strokeWidth=1.5;strokeColor=#d6b656;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="145" y="342" as="sourcePoint" />
+            <mxPoint x="145" y="717" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c146" value="待ち終わったら再送へ" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#d6b656;labelBackgroundColor=#ffffff;" edge="1" parent="p6-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="145" y="717" as="sourcePoint" />
+            <mxPoint x="300" y="717" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c147" value="&lt;b&gt;なぜ「すでにリフレッシュ中?」が要るか。&lt;/b&gt; タブが 3 本同時に 401 を受けて 3 本とも refresh を投げると、&lt;br&gt;最初の 1 本がローテーションし、残り 2 本は「もう使われた券」を出すことになる。うちは猶予 30 秒があるので&lt;br&gt;救済されるが (図 5 の within-grace)、猶予が無い実装では &lt;b&gt;自分で自分のセッションを切る&lt;/b&gt;。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p6-1">
+          <mxGeometry x="20" y="855" width="970" height="66" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-8" name="8-券の置き場">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="700" math="0" shadow="0">
+      <root>
+        <mxCell id="p7-0" />
+        <mxCell id="p7-1" parent="p7-0" />
+        <mxCell id="c148" value="フロントで券をどこに置くか — 書き手が 2 人、読み手が 2 人" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p7-1">
+          <mxGeometry x="40" y="25" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c149" value="" style="html=1;endArrow=none;dashed=1;strokeWidth=2;strokeColor=#999999;" edge="1" parent="p7-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="525" y="75" as="sourcePoint" />
+            <mxPoint x="525" y="630" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c150" value="React の中" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;fontStyle=1;fontSize=13;" vertex="1" parent="p7-1">
+          <mxGeometry x="150" y="78" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c151" value="React の外" style="rounded=0;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;fontStyle=1;fontSize=13;" vertex="1" parent="p7-1">
+          <mxGeometry x="710" y="78" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="c152" value="ログイン画面&lt;br&gt;useLogin().mutate()" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p7-1">
+          <mxGeometry x="60" y="130" width="370" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c153" value="fetch ラッパー&lt;br&gt;401 を受けたら refresh" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="p7-1">
+          <mxGeometry x="620" y="130" width="370" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c154" value="&lt;b&gt;useAuthStore&lt;/b&gt;  (zustand)&lt;br&gt;&lt;br&gt;accessToken  /  status" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p7-1">
+          <mxGeometry x="310" y="320" width="430" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="c155" value="画面を出し分ける&lt;br&gt;Splash / Login / 本体" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p7-1">
+          <mxGeometry x="60" y="520" width="370" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c156" value="Authorization ヘッダに詰める" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p7-1">
+          <mxGeometry x="620" y="520" width="370" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="c157" value="onSuccess で setToken()" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#6c8ebf;labelBackgroundColor=#ffffff;" edge="1" parent="p7-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="245" y="210" as="sourcePoint" />
+            <mxPoint x="420" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c158" value="refresh 成功で setToken()" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#6c8ebf;labelBackgroundColor=#ffffff;" edge="1" parent="p7-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="805" y="210" as="sourcePoint" />
+            <mxPoint x="630" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c159" value="購読する  useAuthStore(s =&amp;gt; s.status)" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=#ffffff;" edge="1" parent="p7-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="440" as="sourcePoint" />
+            <mxPoint x="245" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c160" value="useAuthStore.getState()" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=#ffffff;" edge="1" parent="p7-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="630" y="440" as="sourcePoint" />
+            <mxPoint x="805" y="520" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c161" value="&lt;b&gt;置き場が 1 つでないと成立しない理由がこの図。&lt;/b&gt; 券を書くのはログインだけではなく、1 時間ごとの refresh も書く。&lt;br&gt;読むのは画面 (React の中) だけではなく、fetch ラッパー (React の外) も読む。&lt;b&gt;両方に届く場所&lt;/b&gt;は zustand の store か素のモジュール変数しかない。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p7-1">
+          <mxGeometry x="40" y="640" width="950" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="page-9" name="9-ログイン判定の遷移">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="900" pageHeight="495" math="0" shadow="0">
+      <root>
+        <mxCell id="p8-0" />
+        <mxCell id="p8-1" parent="p8-0" />
+        <mxCell id="c162" value="ログイン判定は 3 状態 — 真偽値だと足りない" style="text;html=1;align=left;verticalAlign=middle;fontSize=19;fontStyle=1;" vertex="1" parent="p8-1">
+          <mxGeometry x="30" y="25" width="900" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="c163" value="&lt;b&gt;initializing&lt;/b&gt;&lt;br&gt;起動直後。まだ分からない" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p8-1">
+          <mxGeometry x="340" y="70" width="230" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="c164" value="&lt;b&gt;authenticated&lt;/b&gt;&lt;br&gt;券がある" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="p8-1">
+          <mxGeometry x="90" y="270" width="240" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="c165" value="&lt;b&gt;unauthenticated&lt;/b&gt;&lt;br&gt;ログイン画面へ" style="rounded=1;arcSize=10;whiteSpace=wrap;html=1;fontSize=13;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="p8-1">
+          <mxGeometry x="570" y="270" width="240" height="66" as="geometry" />
+        </mxCell>
+        <mxCell id="c166" value="起動時の refresh 成功" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=#ffffff;" edge="1" parent="p8-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420" y="136" as="sourcePoint" />
+            <mxPoint x="240" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c167" value="起動時の refresh 失敗" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p8-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490" y="136" as="sourcePoint" />
+            <mxPoint x="660" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c168" value="ログアウト / refresh 失敗" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#b85450;labelBackgroundColor=#ffffff;" edge="1" parent="p8-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="290" as="sourcePoint" />
+            <mxPoint x="570" y="290" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c169" value="ログイン成功" style="html=1;endArrow=block;endFill=1;rounded=0;fontSize=12;fontStyle=1;strokeWidth=1.5;strokeColor=#82b366;labelBackgroundColor=#ffffff;" edge="1" parent="p8-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="570" y="320" as="sourcePoint" />
+            <mxPoint x="330" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="c170" value="&lt;b&gt;真偽値 1 つだと initializing と unauthenticated が同じ形になる&lt;/b&gt; — どちらも accessToken が undefined だから。&lt;br&gt;その状態を「未ログイン」と判定すると、&lt;b&gt;リロードのたびにログイン画面が一瞬映る&lt;/b&gt;。まだ復帰中なのに。" style="rounded=0;whiteSpace=wrap;html=1;fontSize=12;align=left;spacingLeft=12;verticalAlign=middle;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="p8-1">
+          <mxGeometry x="30" y="400" width="840" height="50" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
