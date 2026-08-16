@@ -14,7 +14,7 @@ import type { RefreshToken } from "~/contexts/auth/domain/model/refresh-token";
 import { RefreshTokenHash } from "~/contexts/auth/domain/model/value-objects/refresh-token-hash";
 import { SessionId } from "~/contexts/auth/domain/model/value-objects/session-id";
 import { UserId } from "~/contexts/user/domain/model/value-objects/user-id";
-import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
+import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { RepositoryError } from "~/shared/errors/repository-error";
 
 import { loginCommand } from "../login-command";
@@ -94,16 +94,16 @@ describe(loginCommand.name, () => {
     });
 
     test("照合できた場合、アクセストークンに利用者とセッションを載せること", async () => {
-      // sid にセッションを載せるので、ログアウトがこの単位で効く。
+      // セッションを載せるので、ログアウトがこの単位で効く。
       // 券 1 枚の id を載せると、古いタブからのログアウトが空振りする。
-      const claims: AccessTokenClaims[] = [];
+      const issued: AuthenticatedCaller[] = [];
       const deps = makeDeps({
         verifyCredentialsQueryService: {
           execute: async () => Result.ok(UserId.parse(OTHER_UUID)),
         },
         accessTokenIssuer: {
           issue: async (received) => {
-            claims.push(received);
+            issued.push(received);
             return FAKE_ACCESS_TOKEN;
           },
         },
@@ -111,7 +111,9 @@ describe(loginCommand.name, () => {
 
       await loginCommand(deps)(VALID);
 
-      expect(claims).toStrictEqual([{ sub: OTHER_UUID, sid: FIXED_UUID }]);
+      expect(issued).toStrictEqual([
+        { userId: OTHER_UUID, sessionId: FIXED_UUID },
+      ]);
     });
   });
 

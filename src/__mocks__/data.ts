@@ -23,7 +23,7 @@ export const FAKE_TOKEN_HASH =
 export const FAKE_ACCESS_TOKEN =
   "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0.signature";
 
-export const FAKE_CLAIMS = { sub: FIXED_UUID, sid: OTHER_UUID };
+export const FAKE_CALLER = { userId: FIXED_UUID, sessionId: OTHER_UUID };
 
 /** 時刻を固定する。決定的なテストのため。 */
 export const FIXED_NOW = new Date("2026-08-14T00:00:00.000Z");

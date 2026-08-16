@@ -4,7 +4,7 @@ import { Result } from "better-result";
 
 import { makeDeps } from "~/__mocks__/app-deps";
 import {
-  FAKE_CLAIMS,
+  FAKE_CALLER,
   FAKE_HASH,
   FIXED_UUID,
   headers,
@@ -112,7 +112,7 @@ describe(changePasswordController.name, () => {
     expect(response.status).toBe(HttpStatus.NoContent);
     // excluding は claims の sid。変えた本人まで追い出さない。
     expect(revoked).toStrictEqual([
-      { userId: FIXED_UUID, excluding: FAKE_CLAIMS.sid },
+      { userId: FIXED_UUID, excluding: FAKE_CALLER.sessionId },
     ]);
   });
 

@@ -5,14 +5,14 @@ import type {
   ChangePasswordBody,
   ChangePasswordParams,
 } from "~/generated/users";
-import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
+import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import { changePasswordCommand } from "../../application/change-password-command";
 import type { UserDeps } from "../../user-deps";
 
 type Input = {
-  readonly auth: AccessTokenClaims;
+  readonly auth: AuthenticatedCaller;
   readonly body: z.infer<typeof ChangePasswordBody>;
   readonly params: z.infer<typeof ChangePasswordParams>;
 };
@@ -25,8 +25,8 @@ export const changePasswordController = (deps: UserDeps) => {
       const input = {
         ...body,
         id: params.id,
-        actor: auth.sub,
-        actorSession: auth.sid,
+        actor: auth.userId,
+        actorSession: auth.sessionId,
       };
       yield* Result.await(command(input));
       return SuccessResponse.NoContent(Result.ok());

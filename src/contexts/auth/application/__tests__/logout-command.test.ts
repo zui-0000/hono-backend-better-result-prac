@@ -71,7 +71,7 @@ describe(logoutCommand.name, () => {
 
   describe("入力の変換", () => {
     test("sid が uuid v7 でない場合、失敗ではなく throw すること", async () => {
-      // claims は AccessTokenClaims が検証済み。ここで落ちるのは
+      // claims は AuthenticatedCaller が検証済み。ここで落ちるのは
       // 検証を抜けた値が届いたということで、**サーバのバグ**。
       const command = logoutCommand(makeDeps());
 

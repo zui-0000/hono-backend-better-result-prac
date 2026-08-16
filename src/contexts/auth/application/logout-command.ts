@@ -19,8 +19,9 @@ const LogoutCommandValues = z.object({ sessionId: SessionId });
 export type LogoutCommandError = RepositoryError;
 
 /**
- * セッションを終了する。**切る単位はセッション (sid) であって利用者 (sub) ではない** —
- * sub で切ると、スマホでログアウトしたら PC まで落ちる。
+ * セッションを終了する。**切る単位はセッション (`sessionId`) であって
+ * 利用者 (`userId`) ではない** — 利用者で切ると、スマホでログアウトしたら
+ * PC まで落ちる。
  *
  * 失効時刻は Clock から取る (DB の now() に任せない)。
  */

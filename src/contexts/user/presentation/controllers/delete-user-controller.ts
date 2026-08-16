@@ -2,14 +2,14 @@ import { Result } from "better-result";
 import type * as z from "zod";
 
 import type { DeleteUserParams } from "~/generated/users";
-import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
+import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
 import { deleteUserCommand } from "../../application/delete-user-command";
 import type { UserDeps } from "../../user-deps";
 
 type Input = {
-  readonly auth: AccessTokenClaims;
+  readonly auth: AuthenticatedCaller;
   readonly params: z.infer<typeof DeleteUserParams>;
 };
 
@@ -20,7 +20,7 @@ export const deleteUserController = (deps: UserDeps) => {
     Result.gen(async function* () {
       const input = {
         id: params.id,
-        actor: auth.sub,
+        actor: auth.userId,
       };
       yield* Result.await(command(input));
       return SuccessResponse.NoContent(Result.ok());

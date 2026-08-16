@@ -38,7 +38,7 @@ const login = async (
 describe(loginController.name, () => {
   test("照合できれば 200。券は本文と Cookie に振り分けること", async () => {
     const created: RefreshToken[] = [];
-    const claims: { sub: string; sid: string }[] = [];
+    const issued: { userId: string; sessionId: string }[] = [];
     const deps = makeDeps({
       verifyCredentialsQueryService: {
         execute: async () => Result.ok(UserId.parse(OTHER_UUID)),
@@ -50,8 +50,8 @@ describe(loginController.name, () => {
         },
       },
       accessTokenIssuer: {
-        issue: async (payload) => {
-          claims.push(payload);
+        issue: async (caller) => {
+          issued.push(caller);
           return FAKE_ACCESS_TOKEN;
         },
       },
@@ -76,9 +76,9 @@ describe(loginController.name, () => {
     expect(created[0]?.tokenHash).toBe(RefreshTokenHash.parse(FAKE_TOKEN_HASH));
     expect(JSON.stringify(created[0])).not.toContain(FAKE_REFRESH_TOKEN);
 
-    // sid はセッション (ログインごとに採番)。sub は利用者。
-    expect(claims[0]?.sid).toBe(FIXED_UUID);
-    expect(claims[0]?.sub).toBe(OTHER_UUID);
+    // セッションはログインごとに採番、利用者は照合の結果。
+    expect(issued[0]?.sessionId).toBe(FIXED_UUID);
+    expect(issued[0]?.userId).toBe(OTHER_UUID);
   });
 
   test("照合できなければ 401。Cookie も出さないこと", async () => {

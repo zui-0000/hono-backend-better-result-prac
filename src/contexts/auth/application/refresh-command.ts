@@ -64,8 +64,8 @@ const rotate = (
     );
 
     const accessToken = await deps.accessTokenIssuer.issue({
-      sub: current.userId,
-      sid: current.sessionId,
+      userId: current.userId,
+      sessionId: current.sessionId,
     });
 
     return Result.ok({ accessToken, refreshToken: generated.token });

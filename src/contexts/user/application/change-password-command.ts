@@ -18,9 +18,9 @@ import { checkUserIsSelf } from "../domain/services/check-user-is-self";
 import type { UserRepository } from "../domain/user-repository";
 
 /**
- * `actorSession` は操作中のセッション (JWT の sid)。**残す 1 つを名指すために要る。**
+ * `actorSession` は操作中のセッション。**残す 1 つを名指すために要る。**
  *
- * auth の値オブジェクトをそのまま受けるのは、claims の sid が素の Uuid で届くから
+ * auth の値オブジェクトをそのまま受けるのは、認証が返す `sessionId` が素の Uuid だから
  * (`logout-command.ts` と同じ経路)。ここで brand に落としておくと、形式が壊れた
  * 値は decodeInput が 400 で弾き、内側に素の文字列が流れ込まない。
  */

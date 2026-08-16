@@ -2,7 +2,7 @@ import type { Result } from "better-result";
 
 import type { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
-import type { AccessTokenClaims } from "./model/access-token-claims";
+import type { AuthenticatedCaller } from "./model/authenticated-caller";
 
 /**
  * アクセストークンの発行と検証を行うポート。
@@ -15,8 +15,8 @@ import type { AccessTokenClaims } from "./model/access-token-claims";
  * 形式不正を書き分けると攻撃側に手掛かりを与える。
  */
 export type AccessTokenIssuer = {
-  readonly issue: (claims: AccessTokenClaims) => Promise<string>;
+  readonly issue: (caller: AuthenticatedCaller) => Promise<string>;
   readonly verify: (
     token: string,
-  ) => Promise<Result<AccessTokenClaims, UnauthorizedError>>;
+  ) => Promise<Result<AuthenticatedCaller, UnauthorizedError>>;
 };

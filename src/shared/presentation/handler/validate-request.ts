@@ -72,7 +72,7 @@ export type ValidatedRequest<Req extends RequestSchemas> = {
   ]: Req[K] extends z.ZodType ? z.infer<Req[K]> : never;
 };
 
-/** controller が受け取る引数。検証済みの入力 + claims (要る経路だけ) + 生の Context。 */
+/** controller が受け取る引数。検証済みの入力 + 認証を通した相手 (要る経路だけ) + 生の Context。 */
 export type ControllerInput<
   Req extends RequestSchemas,
   Auth extends true | undefined,

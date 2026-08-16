@@ -5,7 +5,7 @@ import { Result } from "better-result";
 import { makeDeps } from "~/__mocks__/app-deps";
 import {
   cookieValueOf,
-  FAKE_CLAIMS,
+  FAKE_CALLER,
   headers,
   REQUEST_ID,
   setCookieOf,
@@ -56,9 +56,9 @@ describe(logoutController.name, () => {
     expect(await response.text()).toBe("");
     // **切る単位はセッション (sid) であって利用者 (sub) ではない。**
     expect(revoked).toStrictEqual([
-      { sessionId: FAKE_CLAIMS.sid, revokedAt: expect.any(Date) },
+      { sessionId: FAKE_CALLER.sessionId, revokedAt: expect.any(Date) },
     ]);
-    expect(revoked[0]?.sessionId).not.toBe(FAKE_CLAIMS.sub);
+    expect(revoked[0]?.sessionId).not.toBe(FAKE_CALLER.userId);
   });
 
   test("Cookie も消すこと (サーバ側の失効だけでは足りない)", async () => {

@@ -1,9 +1,17 @@
 import { Result } from "better-result";
 import { sign, verify } from "hono/jwt";
+import * as z from "zod";
 
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
-import { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
+import { Uuid } from "~/shared/domain/model/uuid";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
+
+/**
+ * JWT の語彙 (RFC 7519 の registered claim names)。**この言葉を話すのはここだけ。**
+ * `sub` は「この券の持ち主」、`sid` は「どのログインか」を指す主張で、
+ * 内側へは `AuthenticatedCaller` の語彙に直して渡す。
+ */
+const JwtClaims = z.object({ sub: Uuid, sid: Uuid });
 
 /** 発行と検証が同じプロセスで完結するため対称鍵で足りる。 */
 const ALGORITHM = "HS256";
@@ -33,23 +41,31 @@ export const jwtAccessTokenIssuer = (secret: string): AccessTokenIssuer => {
   }
 
   return {
-    issue: async (claims) => {
+    issue: async ({ userId, sessionId }) => {
       const issuedAt = Math.floor(Date.now() / 1000);
       return await sign(
-        { ...claims, iat: issuedAt, exp: issuedAt + TTL_SECONDS },
+        {
+          sub: userId,
+          sid: sessionId,
+          iat: issuedAt,
+          exp: issuedAt + TTL_SECONDS,
+        },
         secret,
         ALGORITHM,
       );
     },
 
     // hono/jwt の verify は期限切れも署名不正も例外で返す。どれも同じ 401 に丸め、
-    // 失敗の理由は外に出さない (claims の形が違うものも「不正な券」として同じ扱い)。
+    // 失敗の理由は外に出さない (主張の形が違うものも「不正な券」として同じ扱い)。
     verify: async (token) => {
       try {
         const payload = await verify(token, secret, ALGORITHM);
-        const parsed = AccessTokenClaims.safeParse(payload);
+        const parsed = JwtClaims.safeParse(payload);
         return parsed.success
-          ? Result.ok(parsed.data)
+          ? Result.ok({
+              userId: parsed.data.sub,
+              sessionId: parsed.data.sid,
+            })
           : Result.err(new UnauthorizedError());
       } catch {
         return Result.err(new UnauthorizedError());

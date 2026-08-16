@@ -2,7 +2,7 @@ import { Result } from "better-result";
 import type { Context } from "hono";
 
 import type { AccessTokenIssuer } from "~/shared/domain/access-token-issuer";
-import type { AccessTokenClaims } from "~/shared/domain/model/access-token-claims";
+import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { UnauthorizedError } from "~/shared/errors/unauthorized-error";
 
 import { HttpHeader } from "../constants/http-header";
@@ -14,13 +14,13 @@ const BEARER_PATTERN = /^Bearer (.+)$/u;
  * **型に存在しない**ので、うっかり参照するとコンパイルエラーになる。
  */
 export type AuthenticatedInput<Required> = true extends Required
-  ? { readonly auth: AccessTokenClaims }
+  ? { readonly auth: AuthenticatedCaller }
   : Record<never, never>;
 
 export const verifyBearer = async (
   deps: { readonly accessTokenIssuer: AccessTokenIssuer },
   c: Context,
-): Promise<Result<AccessTokenClaims, UnauthorizedError>> => {
+): Promise<Result<AuthenticatedCaller, UnauthorizedError>> => {
   const header = c.req.header(HttpHeader.Authorization);
   const token = header?.match(BEARER_PATTERN)?.[1];
   if (token === undefined) {

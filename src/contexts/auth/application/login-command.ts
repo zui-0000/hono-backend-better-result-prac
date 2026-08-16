@@ -78,10 +78,10 @@ export const loginCommand =
         ),
       );
 
-      // sid にセッションを載せるので、ログアウトはこの単位で効く。
+      // 券にセッションを載せるので、ログアウトはこの単位で効く。
       const accessToken = await deps.accessTokenIssuer.issue({
-        sub: userId,
-        sid: sessionId,
+        userId,
+        sessionId,
       });
 
       return Result.ok({ accessToken, refreshToken: generated.token });

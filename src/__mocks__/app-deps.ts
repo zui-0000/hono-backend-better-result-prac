@@ -13,7 +13,7 @@ import type { PasswordHasher } from "~/shared/domain/password-hasher";
 
 import {
   FAKE_ACCESS_TOKEN,
-  FAKE_CLAIMS,
+  FAKE_CALLER,
   FAKE_HASH,
   FAKE_REFRESH_TOKEN,
   FAKE_TOKEN_HASH,
@@ -91,7 +91,7 @@ export const makeDeps = (
   accessTokenIssuer: {
     issue: async () => FAKE_ACCESS_TOKEN,
     // 既定は「検証を通る」。認証の失敗経路を見るケースだけ差し替える。
-    verify: async () => Result.ok(FAKE_CLAIMS),
+    verify: async () => Result.ok(FAKE_CALLER),
     ...overrides.accessTokenIssuer,
   },
 
