@@ -3,7 +3,10 @@ import { Result } from "better-result";
 import { Refresh200Response } from "~/generated/auth";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import { refreshCommand } from "../../application/refresh-command";
+import {
+  refreshCommand,
+  type RefreshCommandInput,
+} from "../../application/refresh-command";
 import type { AuthDeps } from "../../auth-deps";
 import {
   type RefreshCookie,
@@ -11,7 +14,7 @@ import {
   setRefreshCookie,
 } from "../refresh-cookie";
 
-type Input = { readonly cookie: RefreshCookie };
+type RefreshControllerInput = { readonly cookie: RefreshCookie };
 
 /**
  * アクセストークンを再発行する (POST /auth/refresh)。
@@ -22,11 +25,12 @@ type Input = { readonly cookie: RefreshCookie };
  */
 export const refreshController = (deps: AuthDeps) => {
   const command = refreshCommand(deps);
-  return ({ cookie }: Input) =>
+  return ({ cookie }: RefreshControllerInput) =>
     Result.gen(async function* () {
-      const { accessToken, refreshToken } = yield* Result.await(
-        command({ refreshToken: refreshTokenOf(cookie) }),
-      );
+      const input: RefreshCommandInput = {
+        refreshToken: refreshTokenOf(cookie),
+      };
+      const { accessToken, refreshToken } = yield* Result.await(command(input));
       return setRefreshCookie(
         deps.cookieSettings,
         refreshToken,

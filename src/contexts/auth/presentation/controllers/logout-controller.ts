@@ -3,11 +3,14 @@ import { Result } from "better-result";
 import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import { logoutCommand } from "../../application/logout-command";
+import {
+  logoutCommand,
+  type LogoutCommandInput,
+} from "../../application/logout-command";
 import type { AuthDeps } from "../../auth-deps";
 import { clearRefreshCookie } from "../refresh-cookie";
 
-type Input = { readonly auth: AuthenticatedCaller };
+type LogoutControllerInput = { readonly auth: AuthenticatedCaller };
 
 /**
  * セッションを終了する (POST /auth/logout)。
@@ -20,9 +23,9 @@ type Input = { readonly auth: AuthenticatedCaller };
  */
 export const logoutController = (deps: AuthDeps) => {
   const command = logoutCommand(deps);
-  return ({ auth }: Input) =>
+  return ({ auth }: LogoutControllerInput) =>
     Result.gen(async function* () {
-      const input = {
+      const input: LogoutCommandInput = {
         sessionId: auth.sessionId,
       };
       yield* Result.await(command(input));

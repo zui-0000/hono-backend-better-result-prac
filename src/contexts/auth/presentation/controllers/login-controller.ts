@@ -4,11 +4,14 @@ import type * as z from "zod";
 import { Login200Response, type LoginBody } from "~/generated/auth";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import { loginCommand } from "../../application/login-command";
+import {
+  loginCommand,
+  type LoginCommandInput,
+} from "../../application/login-command";
 import type { AuthDeps } from "../../auth-deps";
 import { setRefreshCookie } from "../refresh-cookie";
 
-type Input = { readonly body: z.infer<typeof LoginBody> };
+type LoginControllerInput = { readonly body: z.infer<typeof LoginBody> };
 
 /**
  * メールアドレスとパスワードで券を発行する (POST /auth/login)。
@@ -19,9 +22,10 @@ type Input = { readonly body: z.infer<typeof LoginBody> };
  */
 export const loginController = (deps: AuthDeps) => {
   const command = loginCommand(deps);
-  return ({ body }: Input) =>
+  return ({ body }: LoginControllerInput) =>
     Result.gen(async function* () {
-      const { accessToken, refreshToken } = yield* Result.await(command(body));
+      const input: LoginCommandInput = body;
+      const { accessToken, refreshToken } = yield* Result.await(command(input));
       return setRefreshCookie(
         deps.cookieSettings,
         refreshToken,

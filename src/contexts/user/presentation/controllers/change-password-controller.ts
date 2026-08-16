@@ -8,10 +8,13 @@ import type {
 import type { AuthenticatedCaller } from "~/shared/domain/model/authenticated-caller";
 import { SuccessResponse } from "~/shared/presentation/success-response";
 
-import { changePasswordCommand } from "../../application/change-password-command";
+import {
+  changePasswordCommand,
+  type ChangePasswordCommandInput,
+} from "../../application/change-password-command";
 import type { UserDeps } from "../../user-deps";
 
-type Input = {
+type ChangePasswordControllerInput = {
   readonly auth: AuthenticatedCaller;
   readonly body: z.infer<typeof ChangePasswordBody>;
   readonly params: z.infer<typeof ChangePasswordParams>;
@@ -20,9 +23,9 @@ type Input = {
 /** パスワードを変更する (PUT /users/{id}/password)。 */
 export const changePasswordController = (deps: UserDeps) => {
   const command = changePasswordCommand(deps);
-  return ({ auth, body, params }: Input) =>
+  return ({ auth, body, params }: ChangePasswordControllerInput) =>
     Result.gen(async function* () {
-      const input = {
+      const input: ChangePasswordCommandInput = {
         ...body,
         id: params.id,
         actor: auth.userId,
