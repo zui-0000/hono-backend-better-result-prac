@@ -25,7 +25,7 @@ describe("UserHashedPassword", () => {
     }
   });
 
-  test("**平文の場合、弾くこと**", () => {
+  test("平文の場合、弾くこと", () => {
     // 防ぎたい事故そのもの。ハッシュ化を挟み忘れて平文が渡ってくる形。
     for (const plainText of [
       "password1234",

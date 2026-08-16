@@ -37,7 +37,7 @@ describe("UserName", () => {
     expect(String(UserName.parse(padded))).toBe(padded);
   });
 
-  test("サロゲートペアを含む場合、**UTF-16 コードユニットで数えること** (契約の書き方とはズレる)", () => {
+  test("サロゲートペアを含む場合、UTF-16 コードユニットで数えること (契約の書き方とはズレる)", () => {
     // zod の `.max()` は `String.prototype.length` を見るので、サロゲートペアが
     // 2 つに数えられる。一方 OpenAPI の `maxLength` は「コードポイント数」と
     // 定義されているため、**契約は 🐈 を 51 匹まで許すと読める**のに実装は弾く。

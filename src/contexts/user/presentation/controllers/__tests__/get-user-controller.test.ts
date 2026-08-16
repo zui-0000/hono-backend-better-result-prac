@@ -33,7 +33,7 @@ describe(getUserController.name, () => {
     });
   });
 
-  test("他人の id の場合、403 を返し**DB を引かずに落ちること**", async () => {
+  test("他人の id の場合、403 を返し、DB を引かずに落ちること", async () => {
     let queried = 0;
     const deps = makeDeps({
       getUserQueryService: {

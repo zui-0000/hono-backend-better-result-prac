@@ -66,7 +66,7 @@ describe(checkMailAddressDuplication.name, () => {
     );
   });
 
-  test("**excluding が自分自身の場合、重複と見なさないこと**", async () => {
+  test("excluding が自分自身の場合、重複と見なさないこと", async () => {
     // これが無いと「メールアドレスを変えない更新」が常に 409 になる。
     const result = await checkMailAddressDuplication(
       repositoryReturning(makeUser(SELF)),

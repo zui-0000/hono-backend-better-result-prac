@@ -55,7 +55,7 @@ describe(verifyCredentials.name, () => {
     expect(result.isOk() ? result.value : null).toBe(ID);
   });
 
-  test("**居ない場合と合わない場合で、どちらも undefined になること**", async () => {
+  test("居ない場合と合わない場合で、どちらも undefined になること", async () => {
     // 書き分けると、総当たりでメールアドレスの登録有無を判定できてしまう
     // (アカウント列挙)。ここで畳んでいることが防御の実体。
     const notFound = await verifyCredentials(deps(undefined, true), {
@@ -71,7 +71,7 @@ describe(verifyCredentials.name, () => {
     expect(wrongPassword.isOk() ? wrongPassword.value : "err").toBeUndefined();
   });
 
-  test("パスワードが違う場合、**失敗ではなく undefined を返すこと**", async () => {
+  test("パスワードが違う場合、失敗ではなく undefined を返すこと", async () => {
     // 401 へ翻訳するのは呼び出し側の責務。ここで失敗にすると、
     // 「居ない」と「合わない」が型のうえで分かれてしまう。
     const result = await verifyCredentials(deps(user, false), {
