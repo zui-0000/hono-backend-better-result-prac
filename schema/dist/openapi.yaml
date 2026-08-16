@@ -419,7 +419,9 @@ components:
           enum:
             - 400
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '4000'
         title:
           $ref: '#/components/schemas/ErrorTitle'
         errors:
@@ -468,12 +470,6 @@ components:
         id:
           $ref: '#/components/schemas/UserId'
       title: CreateUserResponse
-    ErrorCode:
-      type: string
-      description: エラーコード。`<HTTP ステータス><連番>` の 4 桁
-      title: ErrorCode
-      examples:
-        - '4000'
     ErrorItem:
       type: object
       required:
@@ -504,7 +500,9 @@ components:
           enum:
             - 403
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '4030'
         title:
           $ref: '#/components/schemas/ErrorTitle'
       description: 操作する権限が無い (汎用)
@@ -536,7 +534,9 @@ components:
           enum:
             - 500
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '5000'
         title:
           $ref: '#/components/schemas/ErrorTitle'
       description: サーバー内部で予期せぬエラーが発生した (汎用)
@@ -584,7 +584,9 @@ components:
           enum:
             - 409
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '4091'
         title:
           $ref: '#/components/schemas/ErrorTitle'
       description: メールアドレスが既に使用されている
@@ -614,7 +616,9 @@ components:
           enum:
             - 401
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '4011'
         title:
           $ref: '#/components/schemas/ErrorTitle'
       description: 現在のパスワードが一致しない
@@ -659,7 +663,9 @@ components:
           enum:
             - 404
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '4040'
         title:
           $ref: '#/components/schemas/ErrorTitle'
       description: リソースが存在しない (汎用)
@@ -680,7 +686,9 @@ components:
           enum:
             - 401
         code:
-          $ref: '#/components/schemas/ErrorCode'
+          type: string
+          enum:
+            - '4010'
         title:
           $ref: '#/components/schemas/ErrorTitle'
       description: 認証情報が不正 (汎用)

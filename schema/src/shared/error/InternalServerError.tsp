@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorTitle.tsp";
 
 @summary("InternalServerError")
@@ -12,6 +11,6 @@ import "./ErrorTitle.tsp";
 })
 model InternalServerError {
   status: 500;
-  code: ErrorCode;
+  code: "5000";
   title: ErrorTitle;
 }

@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorTitle.tsp";
 
 @summary("ResourceNotFoundError")
@@ -12,6 +11,6 @@ import "./ErrorTitle.tsp";
 })
 model ResourceNotFoundError {
   status: 404;
-  code: ErrorCode;
+  code: "4040";
   title: ErrorTitle;
 }

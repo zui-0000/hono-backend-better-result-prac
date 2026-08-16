@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorTitle.tsp";
 
 @summary("MailAddressDuplicationError")
@@ -12,6 +11,6 @@ import "./ErrorTitle.tsp";
 })
 model MailAddressDuplicationError {
   status: 409;
-  code: ErrorCode;
+  code: "4091";
   title: ErrorTitle;
 }

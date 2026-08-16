@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorItem.tsp";
 import "./ErrorTitle.tsp";
 
@@ -16,7 +15,7 @@ import "./ErrorTitle.tsp";
 })
 model BadRequestError {
   status: 400;
-  code: ErrorCode;
+  code: "4000";
   title: ErrorTitle;
   errors?: ErrorItem[];
 }

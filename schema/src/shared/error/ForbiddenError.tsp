@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorTitle.tsp";
 
 // 認可の失敗は、**対象が存在するかどうかに関わらず 403** で返す。
@@ -24,6 +23,6 @@ import "./ErrorTitle.tsp";
 })
 model ForbiddenError {
   status: 403;
-  code: ErrorCode;
+  code: "4030";
   title: ErrorTitle;
 }

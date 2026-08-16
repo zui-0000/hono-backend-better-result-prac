@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorTitle.tsp";
 
 // パスワード変更でのみ返す。汎用の 401 (UnauthorizedError) と分けておくと、
@@ -18,6 +17,6 @@ import "./ErrorTitle.tsp";
 })
 model PasswordMismatchError {
   status: 401;
-  code: ErrorCode;
+  code: "4011";
   title: ErrorTitle;
 }

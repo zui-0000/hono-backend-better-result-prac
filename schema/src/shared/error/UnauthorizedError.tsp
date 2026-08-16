@@ -1,5 +1,4 @@
 import "../model/index.tsp";
-import "./ErrorCode.tsp";
 import "./ErrorTitle.tsp";
 
 @summary("UnauthorizedError")
@@ -8,6 +7,6 @@ import "./ErrorTitle.tsp";
 @example(#{ status: 401, code: "4010", title: "認証情報が正しくありません" })
 model UnauthorizedError {
   status: 401;
-  code: ErrorCode;
+  code: "4010";
   title: ErrorTitle;
 }
